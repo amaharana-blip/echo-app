@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               String     @id @default(cuid())
+  auth0Id          String     @unique
+  email            String     @unique
+  name             String
+  role             String     @default("EMPLOYEE")
+  teamId           String?
+  team             Team?      @relation(fields: [teamId], references: [id])
+  slackUserId      String?
+  department       String?
+  joinedAt         DateTime   @default(now())
+  surveysCreated   Survey[]
+  responses        Response[]
+  feedbackGiven    Feedback[] @relation("FeedbackGiver")
+  feedbackReceived Feedback[] @relation("FeedbackReceiver")
+  cases            Case[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  managerId String
+  members   User[]
+  surveys   Survey[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Survey {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  module      String
+  status      String     @default("ACTIVE")
+  isAnonymous Boolean    @default(false)
+  teamId      String?
+  team        Team?      @relation(fields: [teamId], references: [id])
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  questions   Question[]
+  responses   Response[]
+  recurrence  String     @default("ONCE")
+  closesAt    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  text      String
+  subtext   String?
+  type      String
+  cards     String   @default("[]")
+  required  Boolean  @default(true)
+  order     Int
+  answers   Answer[]
+  createdAt DateTime @default(now())
+}
+
+model Response {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  isAnonymous Boolean  @default(false)
+  answers     Answer[]
+  submittedAt DateTime @default(now())
+
+  @@unique([surveyId, userId])
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  value      String
+  createdAt  DateTime @default(now())
+}
+
+model Feedback {
+  id          String   @id @default(cuid())
+  giverId     String
+  giver       User     @relation("FeedbackGiver", fields: [giverId], references: [id])
+  receiverId  String
+  receiver    User     @relation("FeedbackReceiver", fields: [receiverId], references: [id])
+  message     String
+  isAnonymous Boolean  @default(false)
+  category    String?
+  createdAt   DateTime @default(now())
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reporter    User     @relation(fields: [reporterId], references: [id])
+  title       String
+  description String
+  category    String
+  priority    String   @default("MEDIUM")
+  status      String   @default("OPEN")
+  isAnonymous Boolean  @default(false)
+  resolution  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
