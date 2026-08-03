@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const CATEGORIES = ["Survey experience", "Missing question", "UI / design", "Bug", "Other"];
 
@@ -13,6 +14,8 @@ export default function ToolFeedbackWidget() {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   async function handleSubmit() {
     if (!message.trim()) return;
@@ -36,7 +39,9 @@ export default function ToolFeedbackWidget() {
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Floating button */}
       <button
@@ -164,6 +169,7 @@ export default function ToolFeedbackWidget() {
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }
