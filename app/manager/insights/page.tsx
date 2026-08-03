@@ -17,8 +17,19 @@ import {
   ChevronRight,
 } from "lucide-react";
 import ToolFeedbackWidget from "@/components/ToolFeedbackWidget";
+import { ENGAGEMENT_SECTIONS } from "@/lib/engagementSurvey";
 
 /* ─── Types ─────────────────────────────────────────────────── */
+interface ManagerAction {
+  id: string;
+  sectionId: string;
+  commitment: string;
+  targetDate: string | null;
+  resolved: boolean;
+  resolvedAt: string | null;
+  createdAt: string;
+}
+
 interface QuestionInsight {
   questionId: string;
   questionText: string;
@@ -336,12 +347,59 @@ export default function ManagerInsightsPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "heatmap" | "modules" | "voice">("overview");
 
+  // AI Briefing
+  const [briefing, setBriefing] = useState<string | null>(null);
+  const [briefingLoading, setBriefingLoading] = useState(false);
+
+  // Manager Actions
+  const [actions, setActions] = useState<ManagerAction[]>([]);
+  const [newAction, setNewAction] = useState({ sectionId: "", commitment: "", targetDate: "" });
+  const [actionPanel, setActionPanel] = useState(false);
+
   useEffect(() => {
     fetch("/api/manager/insights")
       .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
       .then((d) => { setData(d); setLoading(false); })
       .catch((e) => { setError(e.message); setLoading(false); });
+    fetch("/api/actions")
+      .then((r) => r.ok ? r.json() : [])
+      .then((a) => setActions(a));
   }, []);
+
+  async function loadBriefing() {
+    setBriefingLoading(true);
+    try {
+      const r = await fetch("/api/briefing");
+      const j = await r.json();
+      setBriefing(j.briefing ?? j.error ?? "Could not generate briefing.");
+    } finally {
+      setBriefingLoading(false);
+    }
+  }
+
+  async function submitAction() {
+    if (!newAction.sectionId || !newAction.commitment.trim()) return;
+    const r = await fetch("/api/actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newAction),
+    });
+    if (r.ok) {
+      const created = await r.json();
+      setActions((prev) => [created, ...prev]);
+      setNewAction({ sectionId: "", commitment: "", targetDate: "" });
+      setActionPanel(false);
+    }
+  }
+
+  async function markActionDone(id: string) {
+    await fetch("/api/actions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, resolved: true }),
+    });
+    setActions((prev) => prev.map((a) => a.id === id ? { ...a, resolved: true } : a));
+  }
 
   /* ── Mock for visual preview when no live data ── */
   const MOCK: InsightsData = {
@@ -548,6 +606,137 @@ export default function ManagerInsightsPage() {
                 <StatCard icon={<TrendingUp />} label="Overall Favorable" value={`${overallFav}%`} sub="Across all modules" accent="#10B981" />
                 <StatCard icon={<AlertTriangle />} label="Needs Attention" value={atRiskCount} sub="Dimensions below 50%" accent="#EF4444" />
                 <StatCard icon={<Activity />} label="Open Cases" value={d.openCases} sub="Not yet resolved" accent="#F59E0B" />
+              </div>
+
+              {/* AI Briefing */}
+              <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg,#EEF2FF,#F5F3FF)", border: "1px solid #C7D2FE" }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-indigo-400">AI Briefing</p>
+                    <h2 className="text-sm font-black text-indigo-900 mt-0.5">What does the data say?</h2>
+                  </div>
+                  {!briefing && (
+                    <button
+                      onClick={loadBriefing}
+                      disabled={briefingLoading}
+                      className="text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-50"
+                      style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)", color: "#fff" }}
+                    >
+                      {briefingLoading ? "Generating…" : "Generate briefing"}
+                    </button>
+                  )}
+                  {briefing && (
+                    <button onClick={() => setBriefing(null)} className="text-xs text-indigo-400 hover:text-indigo-700">Refresh</button>
+                  )}
+                </div>
+                {briefingLoading && (
+                  <div className="flex items-center gap-2 text-xs text-indigo-400">
+                    <div className="h-4 w-4 rounded-full border-2 border-indigo-300 border-t-indigo-600 animate-spin" />
+                    Reading your team&apos;s data…
+                  </div>
+                )}
+                {briefing && !briefingLoading && (
+                  <p className="text-sm text-indigo-900 leading-relaxed whitespace-pre-wrap">{briefing}</p>
+                )}
+                {!briefing && !briefingLoading && (
+                  <p className="text-xs text-indigo-400">Click &quot;Generate briefing&quot; to get a plain-English summary of your team&apos;s pulse.</p>
+                )}
+              </div>
+
+              {/* Manager Actions */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Commitments</p>
+                    <h2 className="text-sm font-black text-gray-800 mt-0.5">What you&apos;ve committed to</h2>
+                  </div>
+                  <button
+                    onClick={() => setActionPanel((p) => !p)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
+                    style={{ background: "#F3F4F6", color: "#374151", border: "1px solid #E5E7EB" }}
+                  >
+                    + Add commitment
+                  </button>
+                </div>
+
+                {actionPanel && (
+                  <div className="mb-3 p-4 rounded-2xl" style={{ background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
+                    <div className="space-y-3">
+                      <select
+                        value={newAction.sectionId}
+                        onChange={(e) => setNewAction((p) => ({ ...p, sectionId: e.target.value }))}
+                        className="w-full text-sm px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                      >
+                        <option value="">Select area…</option>
+                        {ENGAGEMENT_SECTIONS.map((s) => (
+                          <option key={s.id} value={s.id}>{s.icon} {s.title}</option>
+                        ))}
+                      </select>
+                      <textarea
+                        value={newAction.commitment}
+                        onChange={(e) => setNewAction((p) => ({ ...p, commitment: e.target.value }))}
+                        placeholder="What will you do? e.g. Share career ladder doc by end of month"
+                        rows={2}
+                        className="w-full text-sm px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="date"
+                          value={newAction.targetDate}
+                          onChange={(e) => setNewAction((p) => ({ ...p, targetDate: e.target.value }))}
+                          className="text-sm px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        />
+                        <button
+                          onClick={submitAction}
+                          disabled={!newAction.sectionId || !newAction.commitment.trim()}
+                          className="flex-1 text-sm font-bold py-2 rounded-xl disabled:opacity-40 transition-all"
+                          style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)", color: "#fff" }}
+                        >
+                          Save commitment
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {actions.length === 0 && !actionPanel && (
+                  <p className="text-xs text-gray-400">No commitments yet. Add one after reviewing your team&apos;s scores.</p>
+                )}
+
+                <div className="space-y-2">
+                  {actions.map((a) => {
+                    const section = ENGAGEMENT_SECTIONS.find((s) => s.id === a.sectionId);
+                    return (
+                      <div
+                        key={a.id}
+                        className="flex items-start gap-3 p-3 rounded-xl transition-all"
+                        style={{
+                          background: a.resolved ? "#F0FDF4" : "#FAFAFA",
+                          border: `1px solid ${a.resolved ? "#BBF7D0" : "#E5E7EB"}`,
+                          opacity: a.resolved ? 0.7 : 1,
+                        }}
+                      >
+                        <button
+                          onClick={() => !a.resolved && markActionDone(a.id)}
+                          className="mt-0.5 h-4 w-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                          style={{
+                            border: `2px solid ${a.resolved ? "#10B981" : "#D1D5DB"}`,
+                            background: a.resolved ? "#10B981" : "transparent",
+                          }}
+                        >
+                          {a.resolved && <span className="text-white text-[9px]">✓</span>}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-semibold text-gray-400 mb-0.5">
+                            {section ? `${section.icon} ${section.title}` : a.sectionId}
+                            {a.targetDate && ` · due ${new Date(a.targetDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                          </p>
+                          <p className={`text-sm text-gray-700 ${a.resolved ? "line-through" : ""}`}>{a.commitment}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Module donuts */}

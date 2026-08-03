@@ -24,6 +24,8 @@ model User {
   feedbackGiven    Feedback[] @relation("FeedbackGiver")
   feedbackReceived Feedback[] @relation("FeedbackReceiver")
   cases            Case[]
+  nudgeReplies     NudgeReply[]
+  managerActions   ManagerAction[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 }
@@ -119,4 +121,41 @@ model Case {
   resolution  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Weekly Slack nudge — 2-question DM sent to each team member
+model Nudge {
+  id          String    @id @default(cuid())
+  weekOf      DateTime  // Monday of the week this nudge covers
+  sentAt      DateTime  @default(now())
+  replies     NudgeReply[]
+  createdAt   DateTime  @default(now())
+}
+
+model NudgeReply {
+  id          String   @id @default(cuid())
+  nudgeId     String
+  nudge       Nudge    @relation(fields: [nudgeId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  sectionId   String   // which section was asked (e.g. "leadership")
+  rating      Int      // 1-5
+  whyLabel    String?  // optional why chip text
+  createdAt   DateTime @default(now())
+
+  @@unique([nudgeId, userId, sectionId])
+}
+
+// Manager commitment after seeing low scores
+model ManagerAction {
+  id          String    @id @default(cuid())
+  managerId   String
+  manager     User      @relation(fields: [managerId], references: [id])
+  sectionId   String    // which section this addresses
+  commitment  String    // what the manager said they'd do
+  targetDate  DateTime?
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
