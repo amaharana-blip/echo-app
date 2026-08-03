@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import ToolFeedbackWidget from "@/components/ToolFeedbackWidget";
 
 /* ─── Types ─────────────────────────────────────────────────── */
 interface QuestionInsight {
@@ -816,6 +817,7 @@ export default function ManagerInsightsPage() {
 
         </div>
       </main>
+      <ToolFeedbackWidget />
     </div>
   );
 }

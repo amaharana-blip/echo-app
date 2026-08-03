@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import EngagementSurveyEngine from "@/components/EngagementSurveyEngine";
+import ToolFeedbackWidget from "@/components/ToolFeedbackWidget";
 
 export default function SurveyPage() {
   const { user, isLoading } = useUser();
@@ -49,5 +50,10 @@ export default function SurveyPage() {
     );
   }
 
-  return <EngagementSurveyEngine onComplete={handleComplete} />;
+  return (
+    <>
+      <EngagementSurveyEngine onComplete={handleComplete} />
+      <ToolFeedbackWidget />
+    </>
+  );
 }
