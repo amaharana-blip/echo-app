@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import Sidebar from "@/components/Sidebar";
 import {
   TrendingDown,
   Users,
@@ -13,8 +12,6 @@ import {
   Award,
   Activity,
   RefreshCw,
-  Filter,
-  Download,
   TrendingUp,
   ChevronDown,
   ChevronRight,
@@ -450,8 +447,7 @@ export default function ManagerInsightsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#F4F5F9", fontFamily: "'Inter', sans-serif" }}>
-      <Sidebar />
-      <main className="ml-0 md:ml-[240px]">
+      <main>
 
         {/* ── Header ── */}
         <div
@@ -497,18 +493,11 @@ export default function ManagerInsightsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => { window.location.href = "/api/auth/logout"; }}
                   className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl"
                   style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(199,210,254,0.7)" }}
                 >
-                  <Filter size={12} />
-                  <span className="hidden sm:inline">Filter</span>
-                </button>
-                <button
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(199,210,254,0.7)" }}
-                >
-                  <Download size={12} />
-                  <span className="hidden sm:inline">Export</span>
+                  Sign out
                 </button>
               </div>
             </div>
