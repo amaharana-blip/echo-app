@@ -1,10 +1,18 @@
 import { getSession } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
 
 export default async function Home() {
   const session = await getSession();
-  if (session?.user) redirect("/dashboard");
+  if (session?.user) {
+    const user = await getCurrentUser();
+    if (user?.role === "ADMIN" || user?.role === "MANAGER") {
+      redirect("/manager/insights");
+    } else {
+      redirect("/survey");
+    }
+  }
 
   return (
     <div
