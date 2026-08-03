@@ -240,88 +240,69 @@ export async function GET() {
         }
       }
 
-      // Build per-section module insights
-      const wellbeingSectionIds = ["wellbeing"];
-      const engagementSectionIds = ENGAGEMENT_SECTIONS
-        .map((s) => s.id)
-        .filter((id) => !wellbeingSectionIds.includes(id));
+      // Build one module per section
+      for (const section of ENGAGEMENT_SECTIONS) {
+        const sectionQuestionInsights: typeof allQuestionInsights = [];
 
-      for (const group of [
-        { moduleId: "echo", moduleTitle: "ECHO 1.0 — Engagement", icon: "💬", gradient: "linear-gradient(135deg,#4F46E5,#7C3AED)", sectionIds: engagementSectionIds },
-        { moduleId: "echo-wellbeing", moduleTitle: "ECHO 1.0 — Wellbeing", icon: "💚", gradient: "linear-gradient(135deg,#DC2626,#F97316)", sectionIds: wellbeingSectionIds },
-      ]) {
-        const groupQuestionInsights: typeof allQuestionInsights = [];
+        for (const q of section.questions) {
+          const ratings = qRatings[q.id];
+          if (!ratings || ratings.length === 0) continue;
 
-        for (const sectionId of group.sectionIds) {
-          const section = ENGAGEMENT_SECTIONS.find((s) => s.id === sectionId);
-          if (!section) continue;
-
-          for (const q of section.questions) {
-            const ratings = qRatings[q.id];
-            if (!ratings || ratings.length === 0) continue;
-
-            let fav = 0, neu = 0, unf = 0;
-            for (const r of ratings) {
-              const cls = ratingToClass(r);
-              if (cls === "favorable") fav++;
-              else if (cls === "neutral") neu++;
-              else unf++;
-            }
-            const total = ratings.length;
-            const favPct = Math.round((fav / total) * 100);
-            const neuPct = Math.round((neu / total) * 100);
-            const unfPct = Math.max(0, 100 - favPct - neuPct);
-
-            const qi = {
-              questionId: q.id,
-              questionText: q.text,
-              favorablePercent: favPct,
-              neutralPercent: neuPct,
-              unfavorablePercent: unfPct,
-              responseCount: total,
-              moduleId: group.moduleId,
-              moduleTitle: group.moduleTitle,
-              dimensionId: sectionId,
-              dimensionLabel: section.title,
-            };
-            groupQuestionInsights.push(qi);
-            allQuestionInsights.push(qi);
+          let fav = 0, neu = 0, unf = 0;
+          for (const r of ratings) {
+            const cls = ratingToClass(r);
+            if (cls === "favorable") fav++;
+            else if (cls === "neutral") neu++;
+            else unf++;
           }
+          const total = ratings.length;
+          const favPct = Math.round((fav / total) * 100);
+          const neuPct = Math.round((neu / total) * 100);
+          const unfPct = Math.max(0, 100 - favPct - neuPct);
 
-          // Dimension summary per section
-          if (groupQuestionInsights.filter((q) => q.dimensionId === sectionId).length > 0) {
-            const dimQs = groupQuestionInsights.filter((q) => q.dimensionId === sectionId);
-            const dFav = Math.round(dimQs.reduce((s, q) => s + q.favorablePercent, 0) / dimQs.length);
-            const dNeu = Math.round(dimQs.reduce((s, q) => s + q.neutralPercent, 0) / dimQs.length);
-            const dUnf = Math.max(0, 100 - dFav - dNeu);
-            dimensionSummaries.push({
-              id: `echo-${sectionId}`,
-              label: section.title,
-              moduleId: group.moduleId,
-              moduleTitle: group.moduleTitle,
-              favorablePercent: dFav,
-              neutralPercent: dNeu,
-              unfavorablePercent: dUnf,
-              responseCount: echoResponses.length,
-              color: section.color,
-            });
-          }
+          const qi = {
+            questionId: q.id,
+            questionText: q.text,
+            favorablePercent: favPct,
+            neutralPercent: neuPct,
+            unfavorablePercent: unfPct,
+            responseCount: total,
+            moduleId: section.id,
+            moduleTitle: section.title,
+            dimensionId: section.id,
+            dimensionLabel: section.title,
+          };
+          sectionQuestionInsights.push(qi);
+          allQuestionInsights.push(qi);
         }
 
-        if (groupQuestionInsights.length > 0) {
-          const overallFav = Math.round(groupQuestionInsights.reduce((s, q) => s + q.favorablePercent, 0) / groupQuestionInsights.length);
-          const overallNeu = Math.round(groupQuestionInsights.reduce((s, q) => s + q.neutralPercent, 0) / groupQuestionInsights.length);
-          const overallUnf = Math.max(0, 100 - overallFav - overallNeu);
-          moduleInsights.push({
-            moduleId: group.moduleId,
-            moduleTitle: group.moduleTitle,
-            icon: group.icon,
-            gradient: group.gradient,
+        if (sectionQuestionInsights.length > 0) {
+          const dFav = Math.round(sectionQuestionInsights.reduce((s, q) => s + q.favorablePercent, 0) / sectionQuestionInsights.length);
+          const dNeu = Math.round(sectionQuestionInsights.reduce((s, q) => s + q.neutralPercent, 0) / sectionQuestionInsights.length);
+          const dUnf = Math.max(0, 100 - dFav - dNeu);
+
+          dimensionSummaries.push({
+            id: `echo-${section.id}`,
+            label: section.title,
+            moduleId: section.id,
+            moduleTitle: section.title,
+            favorablePercent: dFav,
+            neutralPercent: dNeu,
+            unfavorablePercent: dUnf,
             responseCount: echoResponses.length,
-            overallFavorablePercent: overallFav,
-            overallNeutralPercent: overallNeu,
-            overallUnfavorablePercent: overallUnf,
-            questions: groupQuestionInsights,
+            color: section.color,
+          });
+
+          moduleInsights.push({
+            moduleId: section.id,
+            moduleTitle: section.title,
+            icon: section.icon,
+            gradient: section.gradient,
+            responseCount: echoResponses.length,
+            overallFavorablePercent: dFav,
+            overallNeutralPercent: dNeu,
+            overallUnfavorablePercent: dUnf,
+            questions: sectionQuestionInsights,
           });
         }
       }
