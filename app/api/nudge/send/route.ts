@@ -20,9 +20,11 @@ function mondayOf(d: Date): Date {
   return monday;
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
+  // Called by Vercel cron (x-vercel-cron: 1) or manually with Bearer token
+  const isCron = req.headers.get("x-vercel-cron") === "1";
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCron && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
