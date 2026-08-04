@@ -6,7 +6,7 @@ import {
   RATING_OPTIONS,
   type EngQuestion,
 } from "@/lib/engagementSurvey";
-import { ChevronRight, ArrowLeft, Check, MessageSquare, Sparkles } from "lucide-react";
+import { ChevronRight, ArrowLeft, Check, MessageSquare, Sparkles, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Ratings = Record<string, number>;
@@ -72,105 +72,117 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div
       className="relative flex flex-col items-center justify-center min-h-screen px-6 py-12 overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #0F0C29 0%, #1E1B4B 50%, #24243e 100%)" }}
+      style={{ background: "linear-gradient(160deg, #032D60 0%, #0176D3 60%, #1B96FF 100%)" }}
     >
-      <div className="absolute inset-0 pointer-events-none" aria-hidden>
-        {Array.from({ length: 60 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2.5 + 0.5,
-              height: Math.random() * 2.5 + 0.5,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 70}%`,
-              opacity: Math.random() * 0.6 + 0.1,
-              animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`,
-            }}
-          />
-        ))}
-      </div>
-      <div className="absolute top-[-120px] left-[-80px] w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%)", animation: "floatOrb 10s ease-in-out infinite" }} />
-      <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)", animation: "floatOrb 14s ease-in-out infinite", animationDelay: "3s" }} />
+      {/* Subtle grid overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.07]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+      {/* Glow orbs */}
+      <div className="absolute top-[-80px] right-[-60px] w-[420px] h-[420px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(27,150,255,0.35) 0%, transparent 70%)", animation: "sfOrb 12s ease-in-out infinite" }} />
+      <div className="absolute bottom-[-60px] left-[-40px] w-[360px] h-[360px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(1,118,211,0.3) 0%, transparent 70%)", animation: "sfOrb 16s ease-in-out infinite", animationDelay: "4s" }} />
 
       <div
         className="relative z-10 text-center max-w-lg w-full transition-all duration-700"
-        style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)" }}
+        style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)" }}
       >
-        <div className="flex justify-center mb-6">
-          <div className="relative h-24 w-24 rounded-[28px] flex items-center justify-center shadow-2xl"
-            style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #A855F7 100%)", boxShadow: "0 0 60px rgba(99,102,241,0.5), 0 20px 40px rgba(0,0,0,0.4)" }}>
-            <span className="text-5xl">💬</span>
-            <div className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full flex items-center justify-center"
-              style={{ background: "#10B981", boxShadow: "0 0 12px rgba(16,185,129,0.6)" }}>
-              <Sparkles size={12} className="text-white" />
+        {/* Logo mark */}
+        <div className="flex justify-center mb-8">
+          <div className="relative h-20 w-20 rounded-2xl flex items-center justify-center shadow-2xl"
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1)",
+            }}>
+            <span className="text-4xl">💬</span>
+            <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full flex items-center justify-center"
+              style={{ background: "#2E844A", boxShadow: "0 0 12px rgba(46,132,74,0.6)", border: "2px solid rgba(255,255,255,0.3)" }}>
+              <Sparkles size={11} className="text-white" />
             </div>
           </div>
         </div>
 
+        {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5 text-xs font-bold tracking-widest uppercase"
-          style={{ background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)", color: "#A5B4FC" }}>
-          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+          style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.9)" }}>
+          <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
           Engage · Connect · Hear · Own
         </div>
 
-        <h1 className="text-5xl font-black text-white mb-2 leading-tight" style={{ letterSpacing: "-0.03em" }}>Welcome to</h1>
-        <h1 className="text-5xl font-black mb-2 leading-tight"
-          style={{ letterSpacing: "-0.03em", background: "linear-gradient(90deg, #818CF8, #A78BFA, #C084FC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          ECHO 1.0
+        {/* Title */}
+        <h1 className="text-5xl font-black text-white mb-1 leading-tight" style={{ letterSpacing: "-0.03em" }}>
+          ECHO
         </h1>
-        <p className="text-sm font-semibold tracking-widest uppercase mb-5" style={{ color: "rgba(165,180,252,0.5)" }}>
-          Engage · Connect · Hear · Own
+        <p className="text-lg font-semibold mb-6" style={{ color: "rgba(255,255,255,0.65)", letterSpacing: "0.12em" }}>
+          EMPLOYEE PULSE SURVEY
         </p>
 
-        <p className="text-base leading-relaxed mb-2" style={{ color: "rgba(199,210,254,0.8)" }}>
+        <p className="text-base leading-relaxed mb-2 text-white" style={{ opacity: 0.88 }}>
           Great teams don't guess — they listen. ECHO is how this team stays honest with itself, one voice at a time.
         </p>
-        <p className="text-sm leading-relaxed mb-8" style={{ color: "rgba(165,180,252,0.5)" }}>
-          Responses go directly to leadership as <strong style={{ color: "rgba(165,180,252,0.8)" }}>aggregated, anonymous insights</strong> — your identity is never revealed.
+        <p className="text-sm leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.55)" }}>
+          Responses go directly to leadership as <strong style={{ color: "rgba(255,255,255,0.85)" }}>aggregated, anonymous insights</strong> — your identity is never revealed.
         </p>
 
+        {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { icon: "🔒", num: null, label: "Fully anonymous" },
-            { icon: "⏱️", num: 8, label: "minutes" },
-            { icon: "📅", num: 1, label: "time per month" },
-          ].map((item) => (
-            <div key={item.label} className="flex flex-col items-center gap-1.5 rounded-2xl py-4 px-3"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="text-2xl">{item.icon}</span>
+            { icon: <Shield size={18} className="text-white" />, num: null, label: "Fully anonymous" },
+            { icon: <span className="text-xl">⏱️</span>, num: 8, label: "minutes" },
+            { icon: <span className="text-xl">📅</span>, num: 1, label: "time per month" },
+          ].map((item, idx) => (
+            <div key={idx} className="flex flex-col items-center gap-1.5 rounded-xl py-4 px-3"
+              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}>
+              {item.icon}
               {item.num !== null && <span className="text-xl font-black text-white">~<AnimatedCount target={item.num} /></span>}
-              <span className="text-[11px] font-semibold text-center" style={{ color: "rgba(165,180,252,0.7)" }}>{item.label}</span>
+              <span className="text-[11px] font-semibold text-center text-white opacity-80">{item.label}</span>
             </div>
           ))}
         </div>
 
-        <div className="rounded-2xl p-5 mb-8 text-left"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(165,180,252,0.5)" }}>
+        {/* Topics */}
+        <div className="rounded-xl p-5 mb-8 text-left"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
             {ENGAGEMENT_SECTIONS.length} topics covered
           </p>
           <div className="flex flex-wrap gap-2">
             {ENGAGEMENT_SECTIONS.map((s) => (
               <span key={s.id} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.25)", color: "#A5B4FC" }}>
+                style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.9)" }}>
                 <span>{s.icon}</span>{s.title}
               </span>
             ))}
           </div>
         </div>
 
+        {/* CTA */}
         <button onClick={onStart}
-          className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-bold text-base text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)", boxShadow: "0 8px 32px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.08)" }}>
+          className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+          style={{
+            background: "#FFFFFF",
+            color: "#032D60",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1)",
+          }}>
           Start the survey
           <ChevronRight size={18} />
         </button>
-        <p className="text-[11px] mt-4" style={{ color: "rgba(165,180,252,0.35)" }}>No login required · responses are fully encrypted at rest</p>
+        <p className="text-[11px] mt-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+          No login required · responses are fully encrypted at rest
+        </p>
       </div>
+
+      <style>{`
+        @keyframes sfOrb { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-18px) scale(1.04)} }
+      `}</style>
     </div>
   );
 }
@@ -194,12 +206,12 @@ function RatingPills({
             key={opt.value}
             onClick={() => onRate(questionId, opt.value)}
             title={opt.label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-150 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 cursor-pointer"
             style={{
-              background: sel ? opt.bg : "#F9FAFB",
-              borderColor: sel ? opt.color : "#E5E7EB",
-              color: sel ? opt.color : "#6B7280",
-              boxShadow: sel ? `0 0 0 2px ${opt.color}22` : "none",
+              background: sel ? "#E8F4FD" : "#F9FAFB",
+              borderColor: sel ? "#0176D3" : "#E5E7EB",
+              color: sel ? "#014486" : "#6B7280",
+              boxShadow: sel ? "0 0 0 2px rgba(1,118,211,0.2)" : "none",
               transform: sel ? "scale(1.05)" : "scale(1)",
             }}
           >
@@ -223,9 +235,9 @@ function WhyChips({
   onToggle: (id: string) => void;
 }) {
   return (
-    <div className="rounded-xl p-3 mt-2" style={{ background: "#F5F6FA", border: "1px solid #EAECF0" }}>
+    <div className="rounded-lg p-3 mt-2" style={{ background: "#F3F2F2", border: "1px solid #E5E5E5" }}>
       <p className="text-[11px] font-bold text-gray-400 mb-2 flex items-center gap-1">
-        <span>💡</span> What's behind this? <span className="font-normal">(optional — pick all that apply)</span>
+        <span>💡</span> What&apos;s behind this? <span className="font-normal">(optional — pick all that apply)</span>
       </p>
       <div className="flex flex-wrap gap-1.5">
         {whys.map((w) => {
@@ -236,9 +248,9 @@ function WhyChips({
               onClick={() => onToggle(w.id)}
               className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all duration-100"
               style={{
-                background: active ? "#EEF2FF" : "#fff",
-                borderColor: active ? "#6366F1" : "#E5E7EB",
-                color: active ? "#4338CA" : "#6B7280",
+                background: active ? "#E8F4FD" : "#fff",
+                borderColor: active ? "#0176D3" : "#E5E7EB",
+                color: active ? "#014486" : "#6B7280",
                 transform: active ? "scale(1.02)" : "scale(1)",
               }}
             >
@@ -271,11 +283,16 @@ function QuestionRow({
   const whys = rating !== undefined ? getWhysForQuestion(question, rating) : [];
 
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+    <div className="rounded-xl bg-white border overflow-hidden transition-all duration-200"
+      style={{
+        borderColor: rating !== undefined ? "#0176D3" : "#E5E7EB",
+        boxShadow: rating !== undefined ? "0 0 0 1px rgba(1,118,211,0.15), 0 2px 8px rgba(1,118,211,0.08)" : "0 1px 3px rgba(0,0,0,0.06)",
+      }}>
       <div className="px-5 pt-5 pb-4">
         {/* Question header */}
         <div className="flex items-start gap-3 mb-4">
-          <span className="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black flex items-center justify-center mt-0.5">
+          <span className="flex-shrink-0 h-6 w-6 rounded-full text-[11px] font-black flex items-center justify-center mt-0.5"
+            style={{ background: "#E8F4FD", color: "#0176D3" }}>
             {number}
           </span>
           <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -299,13 +316,7 @@ function QuestionRow({
 
       {/* Selected indicator strip */}
       {rating !== undefined && (
-        <div
-          className="h-1 w-full"
-          style={{
-            background: RATING_OPTIONS.find((o) => o.value === rating)?.color ?? "#6366F1",
-            opacity: 0.6,
-          }}
-        />
+        <div className="h-1 w-full" style={{ background: "#0176D3", opacity: 0.7 }} />
       )}
     </div>
   );
@@ -329,14 +340,14 @@ function CommentScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 w-full">
-      <div className="bg-white rounded-3xl p-7 shadow-sm" style={{ border: "1px solid #E5E7EB" }}>
+      <div className="bg-white rounded-xl p-7 shadow-sm" style={{ border: "1px solid #E5E7EB" }}>
         <div className="flex items-center gap-3 mb-5">
-          <div className="h-11 w-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: section.gradient }}>
+          <div className="h-11 w-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+            style={{ background: "#E8F4FD", border: "1px solid #C9E4F8" }}>
             {section.icon}
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: section.color }}>Optional comment</p>
+            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: "#0176D3" }}>Optional comment</p>
             <p className="text-sm font-bold text-gray-800">{section.title}</p>
           </div>
           <div className="ml-auto"><MessageSquare size={18} className="text-gray-300" /></div>
@@ -349,8 +360,10 @@ function CommentScreen({
           onChange={(e) => onChange(e.target.value)}
           placeholder="Share your thoughts here…"
           rows={4}
-          className="w-full rounded-xl border text-sm text-gray-700 placeholder-gray-300 p-4 resize-none focus:outline-none focus:ring-2 transition-all"
-          style={{ borderColor: "#E5E7EB" }}
+          className="w-full rounded-lg border text-sm text-gray-700 placeholder-gray-300 p-4 resize-none focus:outline-none transition-all"
+          style={{ borderColor: "#E5E7EB", boxShadow: "none" }}
+          onFocus={(e) => { e.target.style.borderColor = "#0176D3"; e.target.style.boxShadow = "0 0 0 3px rgba(1,118,211,0.1)"; }}
+          onBlur={(e) => { e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }}
         />
         <p className="text-[11px] text-gray-400 mt-2">
           Comments are grouped by theme before being shared with leadership. Your name is never attached.
@@ -359,12 +372,12 @@ function CommentScreen({
 
       <div className="flex items-center justify-between mt-6">
         <button onClick={onBack}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all">
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
           <ArrowLeft size={15} />Back
         </button>
         <button onClick={onNext}
-          className="flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
-          style={{ background: section.gradient }}>
+          className="flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
+          style={{ background: "#0176D3" }}>
           {isLast ? <><Check size={15} />Submit survey</> : <>Next section<ChevronRight size={15} /></>}
         </button>
       </div>
@@ -379,22 +392,35 @@ function DoneScreen() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-6 py-12 text-center overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #0F0C29 0%, #1E1B4B 50%, #24243e 100%)" }}>
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 60%)" }} />
+      style={{ background: "linear-gradient(160deg, #032D60 0%, #0176D3 60%, #1B96FF 100%)" }}>
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.06]"
+        style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
       <div className="relative z-10 transition-all duration-700"
         style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)" }}>
         <div className="h-24 w-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl"
-          style={{ background: "linear-gradient(135deg, #059669, #10B981)", boxShadow: "0 0 60px rgba(16,185,129,0.4), 0 20px 40px rgba(0,0,0,0.4)" }}>
-          <Check size={40} className="text-white" strokeWidth={2.5} />
+          style={{
+            background: "#FFFFFF",
+            boxShadow: "0 0 60px rgba(255,255,255,0.2), 0 20px 40px rgba(0,0,0,0.2)",
+          }}>
+          <Check size={40} style={{ color: "#2E844A" }} strokeWidth={2.5} />
         </div>
-        <h2 className="text-4xl font-black text-white mb-3" style={{ letterSpacing: "-0.02em" }}>You're done! 🎉</h2>
-        <p className="text-base max-w-sm mx-auto mb-8 leading-relaxed" style={{ color: "rgba(199,210,254,0.7)" }}>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4"
+          style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)" }}>
+          <span className="h-1.5 w-1.5 rounded-full bg-green-300" />
+          <span className="text-xs font-bold text-white tracking-wide">Response recorded</span>
+        </div>
+        <h2 className="text-4xl font-black text-white mb-3" style={{ letterSpacing: "-0.02em" }}>Thank you!</h2>
+        <p className="text-base max-w-sm mx-auto mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
           Your ECHO response has been recorded. Your honesty makes this place better for everyone on the team.
         </p>
         <button onClick={() => window.location.href = "/dashboard"}
-          className="px-8 py-3.5 rounded-2xl text-white font-bold text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
-          style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" }}>
+          className="px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
+          style={{ background: "#FFFFFF", color: "#032D60", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           Back to Dashboard
         </button>
       </div>
@@ -403,22 +429,26 @@ function DoneScreen() {
 }
 
 /* ─── Progress bar ─── */
-function ProgressBar({ pct, color }: { pct: number; color: string }) {
+function ProgressBar({ pct }: { pct: number; color: string }) {
   return (
-    <div className="w-full h-1.5 bg-gray-100">
-      <div className="h-full transition-all duration-500 ease-out rounded-r-full"
-        style={{ width: `${pct}%`, background: `linear-gradient(90deg, #4F46E5, ${color})` }} />
+    <div className="w-full h-1" style={{ background: "#E8F4FD" }}>
+      <div className="h-full transition-all duration-500 ease-out"
+        style={{ width: `${pct}%`, background: "#0176D3" }} />
     </div>
   );
 }
 
 /* ─── Section dots ─── */
-function SectionDots({ current, total, color }: { current: number; total: number; color: string }) {
+function SectionDots({ current, total }: { current: number; total: number; color: string }) {
   return (
     <div className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-white border-b border-gray-100">
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} className="rounded-full transition-all duration-300"
-          style={{ width: i === current ? 24 : 6, height: 6, background: i < current ? "#A5B4FC" : i === current ? color : "#E5E7EB" }} />
+          style={{
+            width: i === current ? 20 : 6,
+            height: 6,
+            background: i < current ? "#0176D3" : i === current ? "#032D60" : "#D8EDFC",
+          }} />
       ))}
     </div>
   );
@@ -478,15 +508,7 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
     }
   }
 
-  if (screen.type === "welcome") return (
-    <>
-      <WelcomeScreen onStart={goNext} />
-      <style>{`
-        @keyframes twinkle { 0%,100%{opacity:.15;transform:scale(1)} 50%{opacity:.8;transform:scale(1.3)} }
-        @keyframes floatOrb { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.05)} }
-      `}</style>
-    </>
-  );
+  if (screen.type === "welcome") return <WelcomeScreen onStart={goNext} />;
   if (screen.type === "done") return <DoneScreen />;
 
   const { sectionIdx } = screen;
@@ -494,7 +516,7 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
 
   if (screen.type === "comment") {
     return (
-      <div className="min-h-screen" style={{ background: "#F4F5F9" }}>
+      <div className="min-h-screen" style={{ background: "#F3F2F2" }}>
         <ProgressBar pct={pct} color={section.color} />
         <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} color={section.color} />
         <CommentScreen
@@ -517,37 +539,43 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
   const globalEnd = globalStart + sectionQuestions.length - 1;
 
   return (
-    <div className="min-h-screen pb-10" style={{ background: "#F4F5F9", fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen pb-10" style={{ background: "#F3F2F2", fontFamily: "'Inter', sans-serif" }}>
       <ProgressBar pct={pct} color={section.color} />
       <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} color={section.color} />
 
-      {/* Section header */}
-      <div className="sticky top-0 z-10" style={{ background: section.gradient }}>
+      {/* Section header — Salesforce navy */}
+      <div className="sticky top-0 z-10" style={{ background: "#032D60", borderBottom: "2px solid #0176D3" }}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl leading-none">{section.icon}</span>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
+              style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+              {section.icon}
+            </div>
             <div>
               <p className="text-white font-black text-sm leading-tight">
                 Q{globalStart}–{globalEnd}
+                <span className="ml-2 text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  {section.title}
+                </span>
               </p>
-              <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>
+              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {answeredCount}/{sectionQuestions.length} answered
               </p>
             </div>
           </div>
           {/* Progress pill */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-            style={{ background: "rgba(255,255,255,0.15)" }}>
+            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <span className="text-[11px] font-bold text-white">
-              Section {sectionIdx + 1} / {ENGAGEMENT_SECTIONS.length}
+              {sectionIdx + 1} / {ENGAGEMENT_SECTIONS.length}
             </span>
           </div>
         </div>
 
         {/* Mini progress within section */}
-        <div className="h-1 w-full" style={{ background: "rgba(0,0,0,0.15)" }}>
+        <div className="h-0.5 w-full" style={{ background: "rgba(255,255,255,0.1)" }}>
           <div className="h-full transition-all duration-300"
-            style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: "rgba(255,255,255,0.5)" }} />
+            style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: "#1B96FF" }} />
         </div>
       </div>
 
@@ -568,25 +596,25 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
         {/* Navigation */}
         <div className="flex items-center justify-between pt-2">
           <button onClick={goBack}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white transition-all">
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
             <ArrowLeft size={15} />Back
           </button>
 
           <div className="flex items-center gap-3">
             {!allAnswered && (
               <span className="text-xs text-gray-400">
-                {sectionQuestions.length - answeredCount} question{sectionQuestions.length - answeredCount !== 1 ? "s" : ""} remaining
+                {sectionQuestions.length - answeredCount} remaining
               </span>
             )}
             <button
               onClick={goNext}
               disabled={!allAnswered}
-              className={cn("flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white transition-all")}
+              className={cn("flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold text-white transition-all")}
               style={{
-                background: allAnswered ? section.gradient : "#E5E7EB",
+                background: allAnswered ? "#0176D3" : "#E5E7EB",
                 color: allAnswered ? "#fff" : "#9CA3AF",
                 cursor: allAnswered ? "pointer" : "not-allowed",
-                boxShadow: allAnswered ? `0 4px 16px ${section.color}40` : "none",
+                boxShadow: allAnswered ? "0 4px 12px rgba(1,118,211,0.3)" : "none",
               }}
             >
               {allAnswered ? (
@@ -598,11 +626,6 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes twinkle { 0%,100%{opacity:.15;transform:scale(1)} 50%{opacity:.8;transform:scale(1.3)} }
-        @keyframes floatOrb { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.05)} }
-      `}</style>
     </div>
   );
 }
