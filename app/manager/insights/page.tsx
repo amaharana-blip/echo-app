@@ -20,6 +20,11 @@ import {
   CheckCircle2,
   Circle,
   LogOut,
+  Eye,
+  EyeOff,
+  Lock,
+  X,
+  ShieldAlert,
 } from "lucide-react";
 import ToolFeedbackWidget from "@/components/ToolFeedbackWidget";
 import { ENGAGEMENT_SECTIONS } from "@/lib/engagementSurvey";
@@ -86,6 +91,15 @@ interface InsightsData {
   moduleInsights: ModuleInsight[];
   teamVoiceComments: TeamVoiceComment[];
   generatedAt: string;
+}
+
+interface IndividualResponse {
+  responseId: string;
+  submittedAt: string;
+  user: { name: string; email: string } | null;
+  overallAvg: number | null;
+  sectionScores: Record<string, { avg: number; ratings: number[] }>;
+  comments: Record<string, string>;
 }
 
 /* ─── Heat map color scale ───────────────────────────────────── */
@@ -338,6 +352,12 @@ export default function ManagerInsightsPage() {
   const [newAction, setNewAction] = useState({ sectionId: "", commitment: "", targetDate: "" });
   const [actionPanel, setActionPanel] = useState(false);
 
+  // Secret individual view
+  const [secretGate, setSecretGate] = useState<"hidden" | "confirm" | "open">("hidden");
+  const [individualData, setIndividualData] = useState<IndividualResponse[] | null>(null);
+  const [individualLoading, setIndividualLoading] = useState(false);
+  const [expandedResponse, setExpandedResponse] = useState<string | null>(null);
+
   useEffect(() => {
     fetch("/api/manager/insights")
       .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
@@ -347,6 +367,16 @@ export default function ManagerInsightsPage() {
       .then((r) => r.ok ? r.json() : [])
       .then((a) => setActions(a));
   }, []);
+
+  async function loadIndividual() {
+    setIndividualLoading(true);
+    try {
+      const r = await fetch("/api/manager/individual");
+      if (r.ok) setIndividualData(await r.json());
+    } finally {
+      setIndividualLoading(false);
+    }
+  }
 
   async function loadBriefing() {
     setBriefingLoading(true);
@@ -532,14 +562,32 @@ export default function ManagerInsightsPage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => { window.location.href = "/api/auth/logout"; }}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
-                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }}
-              >
-                <LogOut size={13} />
-                Sign out
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Secret individual view — unlabelled on purpose */}
+                <button
+                  onClick={() => {
+                    if (secretGate === "hidden") setSecretGate("confirm");
+                    else { setSecretGate("hidden"); setIndividualData(null); }
+                  }}
+                  title="Individual responses"
+                  className="h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                  style={{
+                    background: secretGate !== "hidden" ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)",
+                    border: secretGate !== "hidden" ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(255,255,255,0.12)",
+                    color: secretGate !== "hidden" ? "#FCA5A5" : "rgba(165,180,252,0.5)",
+                  }}
+                >
+                  {secretGate !== "hidden" ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+                <button
+                  onClick={() => { window.location.href = "/api/auth/logout"; }}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
+                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }}
+                >
+                  <LogOut size={13} />
+                  Sign out
+                </button>
+              </div>
             </div>
 
             {/* Tabs */}
@@ -1028,6 +1076,180 @@ export default function ManagerInsightsPage() {
 
         </div>
       </main>
+
+      {/* ── Confirmation gate modal ── */}
+      {secretGate === "confirm" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: "#0F0C29", border: "1px solid rgba(239,68,68,0.3)" }}>
+            <div className="absolute inset-0 opacity-[0.05]"
+              style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+            <div className="relative p-6 text-center">
+              <div className="h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: "linear-gradient(135deg,#DC2626,#EF4444)", boxShadow: "0 0 32px rgba(239,68,68,0.4)" }}>
+                <ShieldAlert size={24} className="text-white" />
+              </div>
+              <h2 className="text-lg font-black text-white mb-2" style={{ letterSpacing: "-0.02em" }}>
+                Individual responses
+              </h2>
+              <p className="text-sm leading-relaxed mb-1" style={{ color: "rgba(199,210,254,0.7)" }}>
+                This view reveals <strong className="text-white">who said what</strong>. The survey was shown as anonymous to respondents.
+              </p>
+              <p className="text-xs mb-6" style={{ color: "rgba(165,180,252,0.45)" }}>
+                Access is logged. Use only for legitimate people management purposes.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setSecretGate("hidden")}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: "rgba(255,255,255,0.08)", color: "rgba(199,210,254,0.7)", border: "1px solid rgba(255,255,255,0.1)" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setSecretGate("open"); loadIndividual(); }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg,#DC2626,#EF4444)", boxShadow: "0 4px 16px rgba(239,68,68,0.4)" }}
+                >
+                  I understand — reveal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Individual responses panel (slide-in from bottom) ── */}
+      {secretGate === "open" && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col"
+          style={{ top: "60px" }}>
+          <div className="flex-1 overflow-y-auto"
+            style={{ background: "#0A0820", borderTop: "2px solid rgba(239,68,68,0.4)" }}>
+            {/* Panel header */}
+            <div className="sticky top-0 z-10 px-6 py-4 flex items-center justify-between"
+              style={{ background: "linear-gradient(135deg,#1a0808,#2d1515)", borderBottom: "1px solid rgba(239,68,68,0.2)" }}>
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg,#DC2626,#EF4444)", boxShadow: "0 4px 12px rgba(239,68,68,0.4)" }}>
+                  <Lock size={14} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(252,165,165,0.6)" }}>Confidential</p>
+                  <h3 className="text-sm font-black text-white" style={{ letterSpacing: "-0.01em" }}>Individual Responses</h3>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-1"
+                  style={{ background: "rgba(239,68,68,0.2)", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.3)" }}>
+                  {individualData?.length ?? "—"} respondents
+                </span>
+              </div>
+              <button onClick={() => { setSecretGate("hidden"); setIndividualData(null); }}
+                className="h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(165,180,252,0.6)" }}>
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="px-6 py-4 space-y-3 max-w-4xl mx-auto">
+              {individualLoading && (
+                <div className="flex items-center justify-center py-16">
+                  <div className="h-5 w-5 rounded-full border-2 animate-spin mr-3"
+                    style={{ borderColor: "rgba(252,165,165,0.2)", borderTopColor: "#FCA5A5" }} />
+                  <span className="text-sm" style={{ color: "rgba(199,210,254,0.5)" }}>Loading responses…</span>
+                </div>
+              )}
+
+              {!individualLoading && individualData?.map((resp) => {
+                const isExpanded = expandedResponse === resp.responseId;
+                const avgColor = resp.overallAvg
+                  ? resp.overallAvg >= 4 ? "#4ADE80" : resp.overallAvg >= 3 ? "#FCD34D" : "#F87171"
+                  : "#6B7280";
+
+                return (
+                  <div key={resp.responseId} className="rounded-2xl overflow-hidden transition-all duration-200"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    {/* Row header */}
+                    <button className="w-full text-left px-5 py-4 flex items-center gap-4"
+                      onClick={() => setExpandedResponse(isExpanded ? null : resp.responseId)}>
+                      {/* Avatar */}
+                      <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                        style={{ background: "rgba(99,102,241,0.25)", color: "#A5B4FC" }}>
+                        {resp.user?.name?.charAt(0).toUpperCase() ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{resp.user?.name ?? "Unknown"}</p>
+                        <p className="text-[11px]" style={{ color: "rgba(165,180,252,0.5)" }}>
+                          {resp.user?.email ?? "—"} · {new Date(resp.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </p>
+                      </div>
+                      {/* Overall avg */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-lg font-black" style={{ color: avgColor, letterSpacing: "-0.03em" }}>
+                          {resp.overallAvg?.toFixed(1) ?? "—"}
+                        </span>
+                        <span className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>/5</span>
+                        <ChevronDown size={14} className="transition-transform ml-1"
+                          style={{ color: "rgba(165,180,252,0.4)", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }} />
+                      </div>
+                    </button>
+
+                    {/* Expanded section breakdown */}
+                    {isExpanded && (
+                      <div className="px-5 pb-4 space-y-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        {/* Section scores grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3">
+                          {ENGAGEMENT_SECTIONS.map((sec) => {
+                            const score = resp.sectionScores[sec.id];
+                            if (!score) return null;
+                            const col = score.avg >= 4 ? "#4ADE80" : score.avg >= 3 ? "#FCD34D" : "#F87171";
+                            return (
+                              <div key={sec.id} className="rounded-xl px-3 py-2.5"
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <span className="text-sm">{sec.icon}</span>
+                                  <span className="text-[11px] font-semibold truncate" style={{ color: "rgba(165,180,252,0.6)" }}>{sec.title}</span>
+                                </div>
+                                <span className="text-xl font-black" style={{ color: col, letterSpacing: "-0.03em" }}>{score.avg}</span>
+                                <span className="text-[10px] ml-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>/5</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Comments */}
+                        {Object.entries(resp.comments).length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(165,180,252,0.4)" }}>Comments</p>
+                            {Object.entries(resp.comments).map(([sectionId, text]) => {
+                              const sec = ENGAGEMENT_SECTIONS.find((s) => s.id === sectionId);
+                              return (
+                                <div key={sectionId} className="rounded-xl px-3.5 py-3"
+                                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                                  <p className="text-[10px] font-bold mb-1" style={{ color: sec?.color ?? "#A5B4FC" }}>
+                                    {sec?.icon} {sec?.title ?? sectionId}
+                                  </p>
+                                  <p className="text-xs leading-relaxed italic" style={{ color: "rgba(199,210,254,0.7)" }}>&ldquo;{text}&rdquo;</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {!individualLoading && individualData?.length === 0 && (
+                <div className="py-16 text-center">
+                  <p className="text-sm font-semibold" style={{ color: "rgba(165,180,252,0.5)" }}>No responses in the last 30 days</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ToolFeedbackWidget />
     </div>
   );
