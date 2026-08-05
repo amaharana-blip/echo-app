@@ -380,10 +380,21 @@ export default function ManagerInsightsPage() {
 
   async function loadBriefing() {
     setBriefingLoading(true);
+    setBriefing(null);
     try {
-      const r = await fetch("/api/briefing");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      const r = await fetch("/api/briefing", { signal: controller.signal });
+      clearTimeout(timeout);
       const j = await r.json();
-      setBriefing(j.briefing ?? j.error ?? "Could not generate briefing.");
+      if (!r.ok) {
+        setBriefing(`Error ${r.status}: ${j.error ?? "Could not generate briefing."}`);
+      } else {
+        setBriefing(j.briefing ?? "No briefing returned.");
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setBriefing(msg.includes("abort") ? "Request timed out — try again." : `Failed: ${msg}`);
     } finally {
       setBriefingLoading(false);
     }
@@ -926,9 +937,10 @@ export default function ManagerInsightsPage() {
                   return (
                     <div key={modTitle}>
                       <div
-                        className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white flex items-center gap-2"
-                        style={{ background: grad }}
+                        className="px-5 py-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                        style={{ background: "#F3F2F2", borderTop: "1px solid #E5E5E5", borderBottom: "1px solid #E5E5E5", color: "#4B5563" }}
                       >
+                        <div className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ background: grad }} />
                         {modTitle}
                       </div>
                       {dims.map((ds, i) => {
