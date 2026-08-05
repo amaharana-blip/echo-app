@@ -193,18 +193,20 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-/* ─── Compact rating pills ─── */
+/* ─── Rating pills ─── */
 function RatingPills({
   questionId,
   currentRating,
   onRate,
+  sectionColor,
 }: {
   questionId: string;
   currentRating: number | undefined;
   onRate: (id: string, val: number) => void;
+  sectionColor: string;
 }) {
   return (
-    <div className="flex gap-1.5 flex-wrap">
+    <div className="flex gap-2 flex-wrap">
       {RATING_OPTIONS.map((opt) => {
         const sel = currentRating === opt.value;
         return (
@@ -212,16 +214,16 @@ function RatingPills({
             key={opt.value}
             onClick={() => onRate(questionId, opt.value)}
             title={opt.label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none"
             style={{
-              background: sel ? "#E8F4FD" : "#F9FAFB",
-              borderColor: sel ? "#0176D3" : "#E5E7EB",
-              color: sel ? "#014486" : "#6B7280",
-              boxShadow: sel ? "0 0 0 2px rgba(1,118,211,0.2)" : "none",
-              transform: sel ? "scale(1.05)" : "scale(1)",
+              background: sel ? sectionColor : "#F9FAFB",
+              borderColor: sel ? sectionColor : "#E5E7EB",
+              color: sel ? "#fff" : "#6B7280",
+              boxShadow: sel ? `0 4px 14px ${sectionColor}50` : "none",
+              transform: sel ? "scale(1.07) translateY(-1px)" : "scale(1)",
             }}
           >
-            <span className="text-base leading-none">{opt.emoji}</span>
+            <span className="text-[15px] leading-none">{opt.emoji}</span>
             <span className="hidden sm:inline">{opt.label}</span>
           </button>
         );
@@ -235,15 +237,18 @@ function WhyChips({
   whys,
   selected,
   onToggle,
+  sectionColor,
 }: {
   whys: { id: string; label: string; emoji: string }[];
   selected: string[];
   onToggle: (id: string) => void;
+  sectionColor: string;
 }) {
   return (
-    <div className="rounded-lg p-3 mt-2" style={{ background: "#F3F2F2", border: "1px solid #E5E5E5" }}>
-      <p className="text-[11px] font-bold text-gray-400 mb-2 flex items-center gap-1">
-        <span>💡</span> What&apos;s behind this? <span className="font-normal">(optional — pick all that apply)</span>
+    <div className="rounded-xl p-3.5 mt-3" style={{ background: "#F8F8FC", border: `1px solid ${sectionColor}22` }}>
+      <p className="text-[11px] font-bold mb-2.5 flex items-center gap-1.5" style={{ color: sectionColor }}>
+        <span>💡</span> What&apos;s behind this?
+        <span className="font-normal text-gray-400">(optional)</span>
       </p>
       <div className="flex flex-wrap gap-1.5">
         {whys.map((w) => {
@@ -252,12 +257,13 @@ function WhyChips({
             <button
               key={w.id}
               onClick={() => onToggle(w.id)}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all duration-100"
+              className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all duration-150"
               style={{
-                background: active ? "#E8F4FD" : "#fff",
-                borderColor: active ? "#0176D3" : "#E5E7EB",
-                color: active ? "#014486" : "#6B7280",
-                transform: active ? "scale(1.02)" : "scale(1)",
+                background: active ? sectionColor : "#fff",
+                borderColor: active ? sectionColor : "#E5E7EB",
+                color: active ? "#fff" : "#6B7280",
+                boxShadow: active ? `0 2px 8px ${sectionColor}40` : "none",
+                transform: active ? "scale(1.03)" : "scale(1)",
               }}
             >
               <span>{w.emoji}</span>
@@ -278,6 +284,8 @@ function QuestionRow({
   selectedWhys,
   onRate,
   onToggleWhy,
+  sectionColor,
+  sectionGradient,
 }: {
   question: EngQuestion;
   number: number;
@@ -285,45 +293,50 @@ function QuestionRow({
   selectedWhys: string[];
   onRate: (id: string, val: number) => void;
   onToggleWhy: (qId: string, wId: string) => void;
+  sectionColor: string;
+  sectionGradient: string;
 }) {
   const whys = rating !== undefined ? getWhysForQuestion(question, rating) : [];
+  const answered = rating !== undefined;
 
   return (
-    <div className="rounded-xl bg-white border overflow-hidden transition-all duration-200"
+    <div className="rounded-2xl bg-white overflow-hidden transition-all duration-300"
       style={{
-        borderColor: rating !== undefined ? "#0176D3" : "#E5E7EB",
-        boxShadow: rating !== undefined ? "0 0 0 1px rgba(1,118,211,0.15), 0 2px 8px rgba(1,118,211,0.08)" : "0 1px 3px rgba(0,0,0,0.06)",
+        border: `1px solid ${answered ? sectionColor + "55" : "#EBEBED"}`,
+        boxShadow: answered
+          ? `0 0 0 1px ${sectionColor}20, 0 4px 20px ${sectionColor}14`
+          : "0 1px 4px rgba(0,0,0,0.05)",
       }}>
-      <div className="px-5 pt-5 pb-4">
-        {/* Question header */}
+      {/* Colored top accent bar when answered */}
+      <div className="h-[3px] w-full transition-all duration-500"
+        style={{ background: answered ? sectionGradient : "transparent" }} />
+
+      <div className="px-5 pt-4 pb-5">
         <div className="flex items-start gap-3 mb-4">
-          <span className="flex-shrink-0 h-6 w-6 rounded-full text-[11px] font-black flex items-center justify-center mt-0.5"
-            style={{ background: "#E8F4FD", color: "#0176D3" }}>
-            {number}
+          <span className="flex-shrink-0 h-6 w-6 rounded-full text-[11px] font-black flex items-center justify-center mt-0.5 flex-none"
+            style={{
+              background: answered ? sectionColor : "#F0F0F2",
+              color: answered ? "#fff" : "#9CA3AF",
+            }}>
+            {answered ? <Check size={11} strokeWidth={3} /> : number}
           </span>
-          <div className="flex items-start gap-2 flex-1 min-w-0">
+          <div className="flex items-start gap-2.5 flex-1 min-w-0">
             <span className="text-xl leading-none flex-shrink-0 mt-0.5">{question.icon}</span>
-            <p className="text-sm font-semibold text-gray-800 leading-snug">{question.text}</p>
+            <p className="text-sm font-semibold leading-snug" style={{ color: "#1A1A2E" }}>{question.text}</p>
           </div>
         </div>
 
-        {/* Rating pills */}
-        <RatingPills questionId={question.id} currentRating={rating} onRate={onRate} />
+        <RatingPills questionId={question.id} currentRating={rating} onRate={onRate} sectionColor={sectionColor} />
 
-        {/* Why chips — appear after rating */}
-        {rating !== undefined && whys.length > 0 && (
+        {answered && whys.length > 0 && (
           <WhyChips
             whys={whys}
             selected={selectedWhys}
             onToggle={(wId) => onToggleWhy(question.id, wId)}
+            sectionColor={sectionColor}
           />
         )}
       </div>
-
-      {/* Selected indicator strip */}
-      {rating !== undefined && (
-        <div className="h-1 w-full" style={{ background: "#0176D3", opacity: 0.7 }} />
-      )}
     </div>
   );
 }
@@ -346,44 +359,51 @@ function CommentScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 w-full">
-      <div className="bg-white rounded-xl p-7 shadow-sm" style={{ border: "1px solid #E5E7EB" }}>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="h-11 w-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: "#E8F4FD", border: "1px solid #C9E4F8" }}>
-            {section.icon}
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm" style={{ border: `1px solid ${section.color}30` }}>
+        {/* Section color header stripe */}
+        <div className="h-1.5 w-full" style={{ background: section.gradient }} />
+        <div className="p-7">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+              style={{ background: section.color + "18", border: `1px solid ${section.color}30` }}>
+              {section.icon}
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest mb-0.5" style={{ color: section.color }}>Optional comment</p>
+              <p className="text-base font-black text-gray-900">{section.title}</p>
+            </div>
+            <div className="ml-auto h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "#F5F5F7" }}>
+              <MessageSquare size={16} className="text-gray-400" />
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: "#0176D3" }}>Optional comment</p>
-            <p className="text-sm font-bold text-gray-800">{section.title}</p>
-          </div>
-          <div className="ml-auto"><MessageSquare size={18} className="text-gray-300" /></div>
+          <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+            Anything else on your mind about <strong style={{ color: "#1A1A2E" }}>{section.title.toLowerCase()}</strong>? Completely optional — and fully anonymous.
+          </p>
+          <textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Share your thoughts here…"
+            rows={4}
+            className="w-full rounded-xl border text-sm text-gray-700 placeholder-gray-300 p-4 resize-none focus:outline-none transition-all"
+            style={{ borderColor: "#E5E7EB" }}
+            onFocus={(e) => { e.target.style.borderColor = section.color; e.target.style.boxShadow = `0 0 0 3px ${section.color}20`; }}
+            onBlur={(e) => { e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }}
+          />
+          <p className="text-[11px] text-gray-400 mt-2.5 flex items-center gap-1.5">
+            <Shield size={11} />
+            Comments are grouped by theme. Your name is never attached.
+          </p>
         </div>
-        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-          Anything else on your mind about this topic? Completely optional — and fully anonymous.
-        </p>
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Share your thoughts here…"
-          rows={4}
-          className="w-full rounded-lg border text-sm text-gray-700 placeholder-gray-300 p-4 resize-none focus:outline-none transition-all"
-          style={{ borderColor: "#E5E7EB", boxShadow: "none" }}
-          onFocus={(e) => { e.target.style.borderColor = "#0176D3"; e.target.style.boxShadow = "0 0 0 3px rgba(1,118,211,0.1)"; }}
-          onBlur={(e) => { e.target.style.borderColor = "#E5E7EB"; e.target.style.boxShadow = "none"; }}
-        />
-        <p className="text-[11px] text-gray-400 mt-2">
-          Comments are grouped by theme before being shared with leadership. Your name is never attached.
-        </p>
       </div>
 
       <div className="flex items-center justify-between mt-6">
         <button onClick={onBack}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
           <ArrowLeft size={15} />Back
         </button>
         <button onClick={onNext}
-          className="flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
-          style={{ background: "#0176D3" }}>
+          className="flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+          style={{ background: section.gradient, boxShadow: `0 4px 16px ${section.color}40` }}>
           {isLast ? <><Check size={15} />Submit survey</> : <>Next section<ChevronRight size={15} /></>}
         </button>
       </div>
@@ -422,27 +442,32 @@ function DoneScreen() {
 }
 
 /* ─── Progress bar ─── */
-function ProgressBar({ pct }: { pct: number; color: string }) {
+function ProgressBar({ pct, gradient }: { pct: number; gradient: string }) {
   return (
-    <div className="w-full h-1" style={{ background: "#E8F4FD" }}>
+    <div className="w-full h-1" style={{ background: "#EBEBED" }}>
       <div className="h-full transition-all duration-500 ease-out"
-        style={{ width: `${pct}%`, background: "#0176D3" }} />
+        style={{ width: `${pct}%`, background: gradient }} />
     </div>
   );
 }
 
 /* ─── Section dots ─── */
-function SectionDots({ current, total }: { current: number; total: number; color: string }) {
+function SectionDots({ current, total, sectionColors }: { current: number; total: number; sectionColors: string[] }) {
   return (
-    <div className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-white border-b border-gray-100">
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className="rounded-full transition-all duration-300"
-          style={{
-            width: i === current ? 20 : 6,
-            height: 6,
-            background: i < current ? "#0176D3" : i === current ? "#032D60" : "#D8EDFC",
-          }} />
-      ))}
+    <div className="w-full flex items-center justify-center gap-2 py-3 bg-white border-b border-gray-100">
+      {Array.from({ length: total }).map((_, i) => {
+        const done = i < current;
+        const active = i === current;
+        return (
+          <div key={i} className="rounded-full transition-all duration-300 flex items-center justify-center"
+            style={{
+              width: active ? 24 : done ? 8 : 6,
+              height: active ? 8 : done ? 8 : 6,
+              background: done ? sectionColors[i] : active ? sectionColors[i] : "#E5E7EB",
+              opacity: done ? 0.6 : 1,
+            }} />
+        );
+      })}
     </div>
   );
 }
@@ -507,11 +532,13 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
   const { sectionIdx } = screen;
   const section = ENGAGEMENT_SECTIONS[sectionIdx];
 
+  const sectionColors = ENGAGEMENT_SECTIONS.map((s) => s.color);
+
   if (screen.type === "comment") {
     return (
-      <div className="min-h-screen" style={{ background: "#F3F2F2" }}>
-        <ProgressBar pct={pct} color={section.color} />
-        <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} color={section.color} />
+      <div className="min-h-screen" style={{ background: "#F5F5F7" }}>
+        <ProgressBar pct={pct} gradient={section.gradient} />
+        <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} sectionColors={sectionColors} />
         <CommentScreen
           section={section}
           value={comments[section.id] ?? ""}
@@ -532,43 +559,55 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
   const globalEnd = globalStart + sectionQuestions.length - 1;
 
   return (
-    <div className="min-h-screen pb-10" style={{ background: "#F3F2F2", fontFamily: "'Inter', sans-serif" }}>
-      <ProgressBar pct={pct} color={section.color} />
-      <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} color={section.color} />
+    <div className="min-h-screen pb-10" style={{ background: "#F5F5F7", fontFamily: "'Inter', sans-serif" }}>
+      <ProgressBar pct={pct} gradient={section.gradient} />
+      <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} sectionColors={sectionColors} />
 
-      {/* Section header — Salesforce navy */}
-      <div className="sticky top-0 z-10" style={{ background: "#032D60", borderBottom: "2px solid #0176D3" }}>
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      {/* Section header */}
+      <div className="sticky top-0 z-10 overflow-hidden" style={{ background: "#0F0C29" }}>
+        {/* subtle grid */}
+        <div className="absolute inset-0 opacity-[0.06]"
+          style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        {/* section color glow */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: `linear-gradient(90deg, ${section.color}22 0%, transparent 60%)` }} />
+
+        <div className="relative max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
-              style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{ background: section.color + "30", border: `1px solid ${section.color}50` }}>
               {section.icon}
             </div>
             <div>
-              <p className="text-white font-black text-sm leading-tight">
-                Q{globalStart}–{globalEnd}
-                <span className="ml-2 text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  {section.title}
+              <p className="text-white font-black text-sm leading-tight tracking-tight">
+                {section.title}
+                <span className="ml-2 text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Q{globalStart}–{globalEnd}
                 </span>
               </p>
-              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                {answeredCount}/{sectionQuestions.length} answered
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[11px]" style={{ color: section.color + "cc" }}>
+                  {answeredCount}/{sectionQuestions.length} answered
+                </span>
+                {answeredCount === sectionQuestions.length && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1"
+                    style={{ background: section.color + "30", color: section.color }}>
+                    <Check size={9} strokeWidth={3} /> Done
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          {/* Progress pill */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
-            <span className="text-[11px] font-bold text-white">
-              {sectionIdx + 1} / {ENGAGEMENT_SECTIONS.length}
-            </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[11px] font-black text-white">{sectionIdx + 1}<span className="font-medium opacity-40">/{ENGAGEMENT_SECTIONS.length}</span></span>
+            <span className="text-[10px] font-medium opacity-40 text-white">sections</span>
           </div>
         </div>
 
-        {/* Mini progress within section */}
-        <div className="h-0.5 w-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+        {/* Section-colored mini progress */}
+        <div className="h-0.5 w-full" style={{ background: "rgba(255,255,255,0.08)" }}>
           <div className="h-full transition-all duration-300"
-            style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: "#1B96FF" }} />
+            style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: section.gradient }} />
         </div>
       </div>
 
@@ -583,31 +622,34 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
             selectedWhys={whys[q.id] ?? []}
             onRate={setRating}
             onToggleWhy={toggleWhy}
+            sectionColor={section.color}
+            sectionGradient={section.gradient}
           />
         ))}
 
         {/* Navigation */}
         <div className="flex items-center justify-between pt-2">
           <button onClick={goBack}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
             <ArrowLeft size={15} />Back
           </button>
 
           <div className="flex items-center gap-3">
             {!allAnswered && (
               <span className="text-xs text-gray-400">
-                {sectionQuestions.length - answeredCount} remaining
+                {sectionQuestions.length - answeredCount} left
               </span>
             )}
             <button
               onClick={goNext}
               disabled={!allAnswered}
-              className={cn("flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold text-white transition-all")}
+              className={cn("flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white transition-all")}
               style={{
-                background: allAnswered ? "#0176D3" : "#E5E7EB",
+                background: allAnswered ? section.gradient : "#E5E7EB",
                 color: allAnswered ? "#fff" : "#9CA3AF",
                 cursor: allAnswered ? "pointer" : "not-allowed",
-                boxShadow: allAnswered ? "0 4px 12px rgba(1,118,211,0.3)" : "none",
+                boxShadow: allAnswered ? `0 4px 16px ${section.color}40` : "none",
+                transform: allAnswered ? "scale(1)" : "scale(1)",
               }}
             >
               {allAnswered ? (
