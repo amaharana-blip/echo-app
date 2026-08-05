@@ -233,16 +233,24 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-xl p-5 bg-white" style={{ border: "1px solid #E5E5E5", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="h-9 w-9 rounded-lg flex items-center justify-center [&>svg]:h-4 [&>svg]:w-4"
-          style={{ background: `${accent}18`, color: accent }}>
+    <div className="rounded-2xl p-5 relative overflow-hidden"
+      style={{
+        background: "#fff",
+        border: `1px solid ${accent}22`,
+        boxShadow: `0 4px 20px ${accent}12, 0 1px 4px rgba(0,0,0,0.06)`,
+      }}>
+      {/* accent glow top-right */}
+      <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${accent}25 0%, transparent 70%)` }} />
+      <div className="flex items-start justify-between mb-3 relative">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center [&>svg]:h-5 [&>svg]:w-5"
+          style={{ background: `${accent}18`, color: accent, boxShadow: `0 4px 12px ${accent}30` }}>
           {icon}
         </div>
       </div>
-      <p className="text-2xl font-black leading-none" style={{ color: "#032D60" }}>{value}</p>
-      <p className="text-xs font-semibold text-gray-500 mt-1">{label}</p>
-      {sub && <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>}
+      <p className="text-3xl font-black leading-none relative" style={{ color: "#0F0C29" }}>{value}</p>
+      <p className="text-xs font-bold text-gray-500 mt-1.5 relative">{label}</p>
+      {sub && <p className="text-[11px] text-gray-400 mt-0.5 relative">{sub}</p>}
     </div>
   );
 }
@@ -463,24 +471,40 @@ export default function ManagerInsightsPage() {
       <main>
 
         {/* ── Header ── */}
-        <div className="sticky top-0 z-20" style={{ background: "#032D60", borderBottom: "2px solid #0176D3" }}>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="sticky top-0 z-20 overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #0F0C29 0%, #1E1B4B 40%, #1e3a8a 100%)" }}>
+          {/* animated grid */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.08]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+          {/* glow */}
+          <div className="absolute -top-10 left-1/4 w-64 h-32 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)", filter: "blur(20px)" }} />
+          <div className="absolute -top-6 right-1/3 w-48 h-24 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(1,118,211,0.3) 0%, transparent 70%)", filter: "blur(16px)" }} />
+
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between py-4">
               <div className="flex items-center gap-4">
-                {/* Logo mark */}
-                <div className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-                  <span className="text-lg">💬</span>
+                <div className="relative h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 0 20px rgba(99,102,241,0.4)" }}>
+                  <span className="text-xl">💬</span>
+                  <div className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full flex items-center justify-center"
+                    style={{ background: "#10B981", boxShadow: "0 0 6px rgba(16,185,129,0.7)" }}>
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full"
-                      style={{ background: "rgba(27,150,255,0.2)", color: "#1B96FF", border: "1px solid rgba(27,150,255,0.3)" }}>
+                      style={{ background: "rgba(99,102,241,0.25)", color: "#A5B4FC", border: "1px solid rgba(99,102,241,0.4)" }}>
                       Manager View
                     </span>
                     {isMock && (
                       <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full"
-                        style={{ background: "rgba(221,122,1,0.2)", color: "#F5A623", border: "1px solid rgba(221,122,1,0.3)" }}>
+                        style={{ background: "rgba(251,191,36,0.15)", color: "#FCD34D", border: "1px solid rgba(251,191,36,0.3)" }}>
                         Preview Data
                       </span>
                     )}
@@ -488,15 +512,15 @@ export default function ManagerInsightsPage() {
                   <h1 className="text-xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>
                     ECHO Insights
                   </h1>
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(165,180,252,0.5)" }}>
                     Rolling 30-day window · {d.uniqueRespondents} respondents
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => { window.location.href = "/api/auth/logout"; }}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg transition-all"
-                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)" }}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
+                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }}
               >
                 <LogOut size={13} />
                 Sign out
@@ -504,16 +528,16 @@ export default function ManagerInsightsPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-0.5 pb-3">
+            <div className="flex gap-1 pb-3">
               {tabs.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key)}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg transition-all"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
                   style={
                     activeTab === t.key
-                      ? { background: "#0176D3", color: "#fff" }
-                      : { color: "rgba(255,255,255,0.5)" }
+                      ? { background: "rgba(255,255,255,0.14)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)" }
+                      : { color: "rgba(165,180,252,0.55)", border: "1px solid transparent" }
                   }
                 >
                   {t.icon}
@@ -551,43 +575,45 @@ export default function ManagerInsightsPage() {
               </div>
 
               {/* AI Briefing */}
-              <div className="rounded-xl p-5" style={{ background: "#FFFFFF", border: "1px solid #C9E4F8", boxShadow: "0 1px 4px rgba(1,118,211,0.08)" }}>
-                <div className="flex items-center justify-between mb-3">
+              <div className="rounded-2xl p-5 relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #0F0C29 0%, #1E1B4B 60%, #1e3a8a 100%)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                <div className="absolute inset-0 pointer-events-none opacity-[0.06]"
+                  style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
+                  style={{ background: "radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+                <div className="relative flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center"
-                      style={{ background: "#E8F4FD", border: "1px solid #C9E4F8" }}>
-                      <Sparkles size={16} style={{ color: "#0176D3" }} />
+                    <div className="h-10 w-10 rounded-xl flex items-center justify-center"
+                      style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 4px 16px rgba(99,102,241,0.4)" }}>
+                      <Sparkles size={18} className="text-white" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#0176D3" }}>AI Briefing</p>
-                      <h2 className="text-sm font-black" style={{ color: "#032D60" }}>What does the data say?</h2>
+                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#A5B4FC" }}>AI Briefing · Powered by Claude</p>
+                      <h2 className="text-sm font-black text-white">What does the data say?</h2>
                     </div>
                   </div>
                   {!briefing && (
-                    <button
-                      onClick={loadBriefing}
-                      disabled={briefingLoading}
-                      className="text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50"
-                      style={{ background: "#0176D3", color: "#fff" }}
-                    >
-                      {briefingLoading ? "Generating…" : "Generate briefing"}
+                    <button onClick={loadBriefing} disabled={briefingLoading}
+                      className="text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", color: "#fff", boxShadow: "0 4px 16px rgba(99,102,241,0.4)" }}>
+                      {briefingLoading ? "Generating…" : "✦ Generate briefing"}
                     </button>
                   )}
                   {briefing && (
-                    <button onClick={() => setBriefing(null)} className="text-xs font-semibold" style={{ color: "#0176D3" }}>Refresh</button>
+                    <button onClick={() => setBriefing(null)} className="text-xs font-semibold" style={{ color: "#A5B4FC" }}>Refresh</button>
                   )}
                 </div>
                 {briefingLoading && (
-                  <div className="flex items-center gap-2 text-xs" style={{ color: "#0176D3" }}>
-                    <div className="h-4 w-4 rounded-full border-2 animate-spin" style={{ borderColor: "#C9E4F8", borderTopColor: "#0176D3" }} />
+                  <div className="relative flex items-center gap-2 text-xs" style={{ color: "#A5B4FC" }}>
+                    <div className="h-4 w-4 rounded-full border-2 animate-spin" style={{ borderColor: "rgba(165,180,252,0.3)", borderTopColor: "#A5B4FC" }} />
                     Reading your team&apos;s data…
                   </div>
                 )}
                 {briefing && !briefingLoading && (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#032D60" }}>{briefing}</p>
+                  <p className="relative text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "rgba(199,210,254,0.85)" }}>{briefing}</p>
                 )}
                 {!briefing && !briefingLoading && (
-                  <p className="text-xs" style={{ color: "#939393" }}>Click &quot;Generate briefing&quot; to get a plain-English summary of your team&apos;s pulse.</p>
+                  <p className="relative text-xs" style={{ color: "rgba(165,180,252,0.5)" }}>Click &quot;Generate briefing&quot; to get a plain-English summary of your team&apos;s pulse.</p>
                 )}
               </div>
 
@@ -711,33 +737,40 @@ export default function ManagerInsightsPage() {
                   {d.moduleInsights.map((mod) => {
                     const unf = Math.max(0, 100 - mod.overallFavorablePercent - mod.overallNeutralPercent);
                     const sc = scoreColor(mod.overallFavorablePercent);
+                    const gradients: Record<string, string> = {
+                      echo: "linear-gradient(135deg,#4F46E5,#7C3AED)",
+                      wellbeing: "linear-gradient(135deg,#DC2626,#F97316)",
+                      burnout: "linear-gradient(135deg,#D97706,#F59E0B)",
+                      manager: "linear-gradient(135deg,#7C3AED,#A855F7)",
+                      "ai-tools": "linear-gradient(135deg,#0176D3,#1B96FF)",
+                    };
+                    const cardGlow: Record<string, string> = {
+                      echo: "rgba(99,102,241,0.08)",
+                      wellbeing: "rgba(220,38,38,0.06)",
+                      burnout: "rgba(217,119,6,0.07)",
+                      manager: "rgba(124,58,237,0.07)",
+                      "ai-tools": "rgba(1,118,211,0.07)",
+                    };
+                    const grad = gradients[mod.moduleId] ?? "linear-gradient(135deg,#4F46E5,#7C3AED)";
+                    const glow = cardGlow[mod.moduleId] ?? "rgba(99,102,241,0.08)";
                     return (
-                      <div
-                        key={mod.moduleId}
-                        className="bg-white rounded-xl p-4 flex items-center gap-4"
-                        style={{ border: "1px solid #E5E5E5", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
-                      >
-                        <DonutRing
-                          favorable={mod.overallFavorablePercent}
-                          neutral={mod.overallNeutralPercent}
-                          unfavorable={unf}
-                          size={72}
-                          stroke={9}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-lg leading-none">{mod.icon}</span>
-                            <p className="text-xs font-bold truncate" style={{ color: "#032D60" }}>{mod.moduleTitle}</p>
+                      <div key={mod.moduleId} className="bg-white rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden"
+                        style={{ border: "1px solid #F0F0F0", boxShadow: `0 4px 20px ${glow}, 0 1px 4px rgba(0,0,0,0.05)` }}>
+                        <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full pointer-events-none"
+                          style={{ background: `radial-gradient(circle, ${glow.replace("0.08","0.15").replace("0.06","0.12").replace("0.07","0.14")} 0%, transparent 70%)`, transform: "translate(30%, 30%)" }} />
+                        <DonutRing favorable={mod.overallFavorablePercent} neutral={mod.overallNeutralPercent} unfavorable={unf} size={72} stroke={9} />
+                        <div className="flex-1 min-w-0 relative">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-7 w-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                              style={{ background: grad, boxShadow: `0 4px 10px ${glow.replace("0.08","0.4")}` }}>
+                              {mod.icon}
+                            </div>
+                            <p className="text-xs font-bold truncate" style={{ color: "#0F0C29" }}>{mod.moduleTitle}</p>
                           </div>
-                          <StackedBar
-                            favorable={mod.overallFavorablePercent}
-                            neutral={mod.overallNeutralPercent}
-                            unfavorable={unf}
-                            height={6}
-                          />
+                          <StackedBar favorable={mod.overallFavorablePercent} neutral={mod.overallNeutralPercent} unfavorable={unf} height={6} />
                           <div className="flex items-center justify-between mt-1.5">
                             <p className="text-[10px] text-gray-400">{mod.responseCount} responses</p>
-                            <p className="text-[11px] font-black" style={{ color: sc }}>{mod.overallFavorablePercent}%</p>
+                            <p className="text-sm font-black" style={{ color: sc }}>{mod.overallFavorablePercent}%</p>
                           </div>
                         </div>
                       </div>
@@ -748,21 +781,33 @@ export default function ManagerInsightsPage() {
 
               {/* Top 3 / Bottom 3 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E5E5E5", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-                  <div className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: "1px solid #F3F2F2", background: "#F3FBF6" }}>
-                    <Award size={16} style={{ color: "#2E844A" }} />
-                    <h3 className="text-sm font-bold" style={{ color: "#032D60" }}>Top 3 Signals</h3>
-                    <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>Strengths</span>
+                <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(46,132,74,0.2)", boxShadow: "0 4px 20px rgba(46,132,74,0.07)" }}>
+                  <div className="flex items-center gap-3 px-5 py-3.5 relative overflow-hidden"
+                    style={{ background: "linear-gradient(135deg, #052E16 0%, #14532D 100%)" }}>
+                    <div className="absolute inset-0 opacity-[0.08]"
+                      style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+                    <div className="relative h-8 w-8 rounded-lg flex items-center justify-center"
+                      style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                      <Award size={15} className="text-emerald-300" />
+                    </div>
+                    <h3 className="relative text-sm font-black text-white">Top 3 Signals</h3>
+                    <span className="relative ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(16,185,129,0.25)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.3)" }}>Strengths</span>
                   </div>
                   <div className="px-5 py-1">
                     {d.topQuestions.map((q, i) => <QuestionRow key={q.questionId} q={q} rank={i + 1} />)}
                   </div>
                 </div>
-                <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E5E5E5", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-                  <div className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: "1px solid #F3F2F2", background: "#FEF2F2" }}>
-                    <TrendingDown size={16} style={{ color: "#BA0517" }} />
-                    <h3 className="text-sm font-bold" style={{ color: "#032D60" }}>Bottom 3 Signals</h3>
-                    <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#FEE2E2", color: "#991B1B" }}>Needs focus</span>
+                <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(186,5,23,0.2)", boxShadow: "0 4px 20px rgba(186,5,23,0.07)" }}>
+                  <div className="flex items-center gap-3 px-5 py-3.5 relative overflow-hidden"
+                    style={{ background: "linear-gradient(135deg, #450A0A 0%, #7F1D1D 100%)" }}>
+                    <div className="absolute inset-0 opacity-[0.08]"
+                      style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+                    <div className="relative h-8 w-8 rounded-lg flex items-center justify-center"
+                      style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                      <TrendingDown size={15} className="text-red-300" />
+                    </div>
+                    <h3 className="relative text-sm font-black text-white">Bottom 3 Signals</h3>
+                    <span className="relative ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(239,68,68,0.25)", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.3)" }}>Needs focus</span>
                   </div>
                   <div className="px-5 py-1">
                     {d.bottomQuestions.map((q, i) => <QuestionRow key={q.questionId} q={q} rank={i + 1} />)}
