@@ -662,8 +662,7 @@ export default function ManagerInsightsPage() {
                       <Sparkles size={18} className="text-white" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#A5B4FC" }}>Powered by Claude</p>
-                      <h2 className="text-sm font-black text-white">Team Insights</h2>
+                      <h2 className="text-xl font-black text-white uppercase tracking-wide" style={{ letterSpacing: "0.06em" }}>TEAM INSIGHTS</h2>
                     </div>
                   </div>
                   {!briefing && (
@@ -1263,6 +1262,9 @@ export default function ManagerInsightsPage() {
       )}
 
       <ToolFeedbackWidget />
+      <div className="fixed bottom-2 right-4 pointer-events-none" style={{ zIndex: 30 }}>
+        <p className="text-[10px] font-medium" style={{ color: "rgba(0,0,0,0.2)" }}>Powered by Claude</p>
+      </div>
     </div>
   );
 }
