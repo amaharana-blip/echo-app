@@ -537,8 +537,6 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
   if (screen.type === "comment") {
     return (
       <div className="min-h-screen" style={{ background: "#F5F5F7" }}>
-        <ProgressBar pct={pct} gradient={section.gradient} />
-        <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} sectionColors={sectionColors} />
         <CommentScreen
           section={section}
           value={comments[section.id] ?? ""}
@@ -559,108 +557,128 @@ export default function EngagementSurveyEngine({ onComplete }: Props) {
   const globalEnd = globalStart + sectionQuestions.length - 1;
 
   return (
-    <div className="min-h-screen pb-10" style={{ background: "#F5F5F7", fontFamily: "'Inter', sans-serif" }}>
-      <ProgressBar pct={pct} gradient={section.gradient} />
-      <SectionDots current={sectionIdx} total={ENGAGEMENT_SECTIONS.length} sectionColors={sectionColors} />
+    <div className="min-h-screen pb-16" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      {/* Section header */}
-      <div className="sticky top-0 z-10 overflow-hidden" style={{ background: "#0F0C29" }}>
-        {/* subtle grid */}
-        <div className="absolute inset-0 opacity-[0.06]"
-          style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-        {/* section color glow */}
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: `linear-gradient(90deg, ${section.color}22 0%, transparent 60%)` }} />
+      {/* ── Full-bleed hero header with section personality ── */}
+      <div className="relative overflow-hidden" style={{ background: `linear-gradient(160deg, #0F0C29 0%, #1a1740 45%, ${section.color}55 100%)` }}>
+        {/* global progress bar at very top */}
+        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div className="h-full transition-all duration-500 ease-out" style={{ width: `${pct}%`, background: section.gradient }} />
+        </div>
 
-        <div className="relative max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ background: section.color + "30", border: `1px solid ${section.color}50` }}>
+        {/* grid texture */}
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+
+        {/* large glow orb in section color */}
+        <div className="absolute -bottom-12 -right-12 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${section.color}40 0%, transparent 70%)`, filter: "blur(20px)" }} />
+        <div className="absolute top-0 left-0 w-48 h-48 rounded-full pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${section.color}20 0%, transparent 70%)`, filter: "blur(24px)" }} />
+
+        <div className="relative max-w-2xl mx-auto px-4 pt-8 pb-7">
+          {/* section dots */}
+          <div className="flex items-center gap-2 mb-6">
+            {ENGAGEMENT_SECTIONS.map((s, i) => {
+              const done = i < sectionIdx;
+              const active = i === sectionIdx;
+              return (
+                <div key={s.id} className="rounded-full transition-all duration-300"
+                  style={{
+                    width: active ? 28 : done ? 8 : 6,
+                    height: active ? 8 : 6,
+                    background: done ? s.color : active ? s.color : "rgba(255,255,255,0.2)",
+                    opacity: done ? 0.7 : 1,
+                  }} />
+              );
+            })}
+            <span className="ml-auto text-[11px] font-bold" style={{ color: "rgba(255,255,255,0.45)" }}>
+              {sectionIdx + 1} of {ENGAGEMENT_SECTIONS.length}
+            </span>
+          </div>
+
+          {/* Big section icon */}
+          <div className="flex items-center gap-4 mb-3">
+            <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0 shadow-2xl"
+              style={{ background: section.gradient, boxShadow: `0 0 40px ${section.color}60, 0 8px 24px rgba(0,0,0,0.3)` }}>
               {section.icon}
             </div>
             <div>
-              <p className="text-white font-black text-sm leading-tight tracking-tight">
-                {section.title}
-                <span className="ml-2 text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  Q{globalStart}–{globalEnd}
-                </span>
+              <p className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: section.color }}>
+                Topic {sectionIdx + 1}
               </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[11px]" style={{ color: section.color + "cc" }}>
-                  {answeredCount}/{sectionQuestions.length} answered
-                </span>
-                {answeredCount === sectionQuestions.length && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1"
-                    style={{ background: section.color + "30", color: section.color }}>
-                    <Check size={9} strokeWidth={3} /> Done
-                  </span>
-                )}
-              </div>
+              <h2 className="text-2xl font-black text-white leading-tight" style={{ letterSpacing: "-0.02em" }}>
+                {section.title}
+              </h2>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-[11px] font-black text-white">{sectionIdx + 1}<span className="font-medium opacity-40">/{ENGAGEMENT_SECTIONS.length}</span></span>
-            <span className="text-[10px] font-medium opacity-40 text-white">sections</span>
-          </div>
-        </div>
 
-        {/* Section-colored mini progress */}
-        <div className="h-0.5 w-full" style={{ background: "rgba(255,255,255,0.08)" }}>
-          <div className="h-full transition-all duration-300"
-            style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: section.gradient }} />
+          <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+            {section.description}
+          </p>
+
+          {/* progress pill */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${(answeredCount / sectionQuestions.length) * 100}%`, background: section.gradient }} />
+            </div>
+            <span className="text-xs font-bold" style={{ color: answeredCount === sectionQuestions.length ? section.color : "rgba(255,255,255,0.4)" }}>
+              {answeredCount}/{sectionQuestions.length}
+              {answeredCount === sectionQuestions.length && <span className="ml-1">✓</span>}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Questions */}
-      <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
-        {sectionQuestions.map((q, i) => (
-          <QuestionRow
-            key={q.id}
-            question={q}
-            number={globalStart + i}
-            rating={ratings[q.id]}
-            selectedWhys={whys[q.id] ?? []}
-            onRate={setRating}
-            onToggleWhy={toggleWhy}
-            sectionColor={section.color}
-            sectionGradient={section.gradient}
-          />
-        ))}
+      {/* ── Questions on light bg ── */}
+      <div style={{ background: "#F5F5F7" }}>
+        <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+          {sectionQuestions.map((q, i) => (
+            <QuestionRow
+              key={q.id}
+              question={q}
+              number={globalStart + i}
+              rating={ratings[q.id]}
+              selectedWhys={whys[q.id] ?? []}
+              onRate={setRating}
+              onToggleWhy={toggleWhy}
+              sectionColor={section.color}
+              sectionGradient={section.gradient}
+            />
+          ))}
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-2">
-          <button onClick={goBack}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
-            <ArrowLeft size={15} />Back
-          </button>
-
-          <div className="flex items-center gap-3">
-            {!allAnswered && (
-              <span className="text-xs text-gray-400">
-                {sectionQuestions.length - answeredCount} left
-              </span>
-            )}
-            <button
-              onClick={goNext}
-              disabled={!allAnswered}
-              className={cn("flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white transition-all")}
-              style={{
-                background: allAnswered ? section.gradient : "#E5E7EB",
-                color: allAnswered ? "#fff" : "#9CA3AF",
-                cursor: allAnswered ? "pointer" : "not-allowed",
-                boxShadow: allAnswered ? `0 4px 16px ${section.color}40` : "none",
-                transform: allAnswered ? "scale(1)" : "scale(1)",
-              }}
-            >
-              {allAnswered ? (
-                <>Continue<ChevronRight size={15} /></>
-              ) : (
-                <>Answer all to continue</>
-              )}
+          {/* Navigation */}
+          <div className="flex items-center justify-between pt-2">
+            <button onClick={goBack}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 transition-all">
+              <ArrowLeft size={15} />Back
             </button>
+
+            <div className="flex items-center gap-3">
+              {!allAnswered && (
+                <span className="text-xs text-gray-400">
+                  {sectionQuestions.length - answeredCount} left
+                </span>
+              )}
+              <button
+                onClick={goNext}
+                disabled={!allAnswered}
+                className={cn("flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-bold transition-all")}
+                style={{
+                  background: allAnswered ? section.gradient : "#E5E7EB",
+                  color: allAnswered ? "#fff" : "#9CA3AF",
+                  cursor: allAnswered ? "pointer" : "not-allowed",
+                  boxShadow: allAnswered ? `0 4px 16px ${section.color}45` : "none",
+                }}
+              >
+                {allAnswered ? <>Continue<ChevronRight size={15} /></> : <>Answer all to continue</>}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
