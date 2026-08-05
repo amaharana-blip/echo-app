@@ -12,6 +12,7 @@ function ratingToClass(r: number) {
 }
 
 export async function GET() {
+  try {
   const session = await getSession();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -115,4 +116,9 @@ Tone: direct, empathetic, no bullet points within sections. Max 120 words total.
     respondents: responses.length,
     generatedAt: new Date().toISOString(),
   });
+  } catch (err) {
+    console.error("[briefing GET]", err);
+    const msg = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

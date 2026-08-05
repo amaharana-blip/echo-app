@@ -662,8 +662,8 @@ export default function ManagerInsightsPage() {
                       <Sparkles size={18} className="text-white" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#A5B4FC" }}>AI Briefing · Powered by Claude</p>
-                      <h2 className="text-sm font-black text-white">What does the data say?</h2>
+                      <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#A5B4FC" }}>Team Intelligence · Powered by Claude</p>
+                      <h2 className="text-sm font-black text-white">Weekly pulse summary</h2>
                     </div>
                   </div>
                   {!briefing && (
