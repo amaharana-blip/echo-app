@@ -112,11 +112,11 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5 text-xs font-bold tracking-widest uppercase"
           style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Quick Pulse · 9 questions
+          ECHO 2.0 · 9 questions
         </div>
 
         <h1 className="text-5xl font-black text-white mb-2 leading-tight" style={{ letterSpacing: "-0.03em" }}>
-          Pulse Check
+          ECHO 2.0
         </h1>
         <p className="text-sm font-semibold tracking-widest uppercase mb-5" style={{ color: "rgba(110,231,183,0.5)" }}>
           Fast · Honest · Anonymous
@@ -145,7 +145,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <button onClick={onStart}
           className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-bold text-base text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           style={{ background: "linear-gradient(135deg, #059669 0%, #10B981 100%)", boxShadow: "0 8px 32px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.08)" }}>
-          Start pulse check
+          Start ECHO 2.0
           <ChevronRight size={18} />
         </button>
         <p className="text-[11px] mt-4" style={{ color: "rgba(165,180,252,0.35)" }}>No login required · fully encrypted at rest</p>
@@ -251,7 +251,7 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
               ⚡
             </div>
             <div>
-              <p className="text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "#6EE7B7" }}>Pulse Check</p>
+              <p className="text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "#6EE7B7" }}>ECHO 2.0</p>
               <h2 className="text-2xl font-black text-white leading-tight" style={{ letterSpacing: "-0.02em" }}>
                 Rate each area
               </h2>
