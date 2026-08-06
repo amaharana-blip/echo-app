@@ -231,7 +231,13 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
         <div className="absolute -bottom-8 -right-8 w-64 h-64 rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(16,185,129,0.35) 0%, transparent 70%)", filter: "blur(20px)" }} />
 
-        <div className="relative max-w-2xl mx-auto px-4 pt-7 pb-6">
+        <div className="relative max-w-2xl mx-auto px-4 pt-5 pb-6">
+          {/* Back */}
+          <button onClick={() => setStarted(false)}
+            className="flex items-center gap-1.5 text-xs font-semibold mb-4 transition-opacity hover:opacity-80"
+            style={{ color: "rgba(110,231,183,0.6)" }}>
+            ← Back
+          </button>
           {/* Progress */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
