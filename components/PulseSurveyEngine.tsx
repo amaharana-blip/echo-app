@@ -132,16 +132,16 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         </p>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
           {[
             { icon: "🔒", label: "Fully anonymous" },
             { icon: "⏱️", label: "Under 2 min" },
             { icon: "📊", label: "9 areas covered" },
           ].map((item) => (
-            <div key={item.label} className="flex flex-col items-center gap-1.5 rounded-2xl py-4 px-3"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="text-2xl">{item.icon}</span>
-              <span className="text-[11px] font-semibold text-center" style={{ color: "rgba(165,180,252,0.7)" }}>{item.label}</span>
+            <div key={item.label} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
+              style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
+              <span>{item.icon}</span>
+              {item.label}
             </div>
           ))}
         </div>
