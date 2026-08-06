@@ -359,7 +359,7 @@ export default function ManagerInsightsPage() {
   const [data, setData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "heatmap" | "modules" | "voice" | "pulse">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "heatmap" | "modules" | "voice">("overview");
 
   const [briefing, setBriefing] = useState<string | null>(null);
   const [briefingLoading, setBriefingLoading] = useState(false);
@@ -367,17 +367,6 @@ export default function ManagerInsightsPage() {
   const [actions, setActions] = useState<ManagerAction[]>([]);
   const [newAction, setNewAction] = useState({ sectionId: "", commitment: "", targetDate: "" });
   const [actionPanel, setActionPanel] = useState(false);
-
-  // Pulse survey share
-  const [pulseCopied, setPulseCopied] = useState(false);
-
-  function copyPulseLink() {
-    const url = `${window.location.origin}/pulse-survey`;
-    navigator.clipboard.writeText(url).then(() => {
-      setPulseCopied(true);
-      setTimeout(() => setPulseCopied(false), 2500);
-    });
-  }
 
   // Secret individual view
   const [secretGate, setSecretGate] = useState<"hidden" | "confirm" | "open">("hidden");
@@ -544,14 +533,11 @@ export default function ManagerInsightsPage() {
     : 0;
   const atRiskCount = d.dimensionSummaries.filter((ds) => ds.favorablePercent < 50).length;
 
-  const hasPulse = (d.pulseInsights?.length ?? 0) > 0;
-
-  const tabs: { key: typeof activeTab; label: string; icon: React.ReactNode; dot?: boolean }[] = [
+  const tabs: { key: typeof activeTab; label: string; icon: React.ReactNode }[] = [
     { key: "overview", label: "Overview",    icon: <BarChart3 size={14} /> },
     { key: "heatmap",  label: "Heat Map",    icon: <Activity size={14} /> },
     { key: "modules",  label: "Modules",     icon: <Zap size={14} /> },
     { key: "voice",    label: "Team Voice",  icon: <MessageSquare size={14} /> },
-    { key: "pulse",    label: "Pulse",       icon: <span className="text-[13px] leading-none">⚡</span>, dot: hasPulse },
   ];
 
   return (
@@ -622,18 +608,13 @@ export default function ManagerInsightsPage() {
                 >
                   {secretGate !== "hidden" ? <EyeOff size={13} /> : <Eye size={13} />}
                 </button>
-                <button
-                  onClick={copyPulseLink}
+                <a href="/manager/pulse"
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all hover:scale-[1.03]"
-                  style={pulseCopied
-                    ? { background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }
-                    : { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }
-                  }
-                  title="Copy pulse survey link to share with your team"
+                  style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)", color: "#6EE7B7" }}
                 >
                   <Zap size={13} />
-                  {pulseCopied ? "Link copied!" : "Send pulse"}
-                </button>
+                  Pulse-Check
+                </a>
                 <button
                   onClick={() => { window.location.href = "/api/auth/logout"; }}
                   className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
@@ -651,7 +632,7 @@ export default function ManagerInsightsPage() {
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key)}
-                  className="relative flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
                   style={
                     activeTab === t.key
                       ? { background: "rgba(255,255,255,0.14)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)" }
@@ -660,9 +641,6 @@ export default function ManagerInsightsPage() {
                 >
                   {t.icon}
                   {t.label}
-                  {t.dot && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 border border-transparent" />
-                  )}
                 </button>
               ))}
             </div>
@@ -1131,135 +1109,6 @@ export default function ManagerInsightsPage() {
               </div>
             </div>
           )}
-
-          {/* ══ PULSE ══ */}
-          {activeTab === "pulse" && (() => {
-            const pi = d.pulseInsights ?? [];
-            const pulseResp = d.pulseRespondents ?? 0;
-            const pulseOverallFav = pi.length
-              ? Math.round(pi.reduce((s, x) => s + x.favorablePercent, 0) / pi.length)
-              : 0;
-            const pulseAtRisk = pi.filter((x) => x.favorablePercent < 50).length;
-            return (
-            <div className="space-y-5">
-              {/* Pulse stat strip */}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { icon: "⚡", label: "Respondents", value: String(pulseResp), sub: "Pulse check", color: "#059669", bg: "#ECFDF5", border: "#6EE7B7" },
-                  { icon: "📊", label: "Overall Favorable", value: pulseResp > 0 ? `${pulseOverallFav}%` : "—", sub: "Across 9 areas", color: scoreColor(pulseOverallFav), bg: "#F0FDF4", border: "#86EFAC" },
-                  { icon: "⚠️", label: "Needs Attention", value: String(pulseAtRisk), sub: "Areas below 50%", color: pulseAtRisk > 0 ? "#BA0517" : "#2E844A", bg: pulseAtRisk > 0 ? "#FEF2F2" : "#F0FDF4", border: pulseAtRisk > 0 ? "#FCA5A5" : "#86EFAC" },
-                ].map((s) => (
-                  <div key={s.label} className="bg-white rounded-2xl p-4 flex items-start gap-3"
-                    style={{ border: `1px solid ${s.border}44`, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-                    <div className="h-9 w-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                      style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                      {s.icon}
-                    </div>
-                    <div>
-                      <p className="text-2xl font-black leading-none mb-0.5" style={{ color: "#0F0C29" }}>{s.value}</p>
-                      <p className="text-xs font-semibold" style={{ color: "#374151" }}>{s.label}</p>
-                      <p className="text-[10px] text-gray-400">{s.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">Quick pulse results</p>
-                  <h2 className="text-base font-black" style={{ color: "#0F0C29", letterSpacing: "-0.02em" }}>Section breakdown</h2>
-                </div>
-                <button
-                  onClick={copyPulseLink}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all hover:scale-[1.03]"
-                  style={pulseCopied
-                    ? { background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.35)", color: "#059669" }
-                    : { background: "#fff", border: "1px solid #E5E7EB", color: "#374151" }
-                  }
-                >
-                  <Zap size={12} />
-                  {pulseCopied ? "Copied!" : "Copy pulse link"}
-                </button>
-              </div>
-
-              {pi.length === 0 ? (
-                <div className="rounded-2xl overflow-hidden relative"
-                  style={{ background: "linear-gradient(135deg, #0F0C29 0%, #064e3b 100%)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                  <div className="absolute inset-0 opacity-[0.05]"
-                    style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-                  <div className="relative p-12 flex flex-col items-center text-center">
-                    <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-3xl mb-5 shadow-2xl"
-                      style={{ background: "linear-gradient(135deg,#059669,#10B981)", boxShadow: "0 0 40px rgba(16,185,129,0.4)" }}>
-                      ⚡
-                    </div>
-                    <p className="text-base font-black text-white mb-1" style={{ letterSpacing: "-0.02em" }}>No pulse data yet</p>
-                    <p className="text-sm max-w-xs leading-relaxed" style={{ color: "rgba(110,231,183,0.6)" }}>
-                      Copy the link above and share it with your team. Results appear here as soon as anyone responds.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[...pi].sort((a, b) => b.favorablePercent - a.favorablePercent).map((pi) => (
-                    <div key={pi.sectionId} className="bg-white rounded-2xl overflow-hidden"
-                      style={{ border: `1px solid ${pi.sectionColor}30`, boxShadow: `0 2px 12px ${pi.sectionColor}10` }}>
-                      <div className="h-1 w-full" style={{ background: pi.sectionGradient }} />
-                      <div className="p-4">
-                        {/* Header */}
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                              style={{ background: pi.sectionGradient, boxShadow: `0 4px 10px ${pi.sectionColor}40` }}>
-                              {pi.sectionIcon}
-                            </div>
-                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: pi.sectionColor }}>
-                              {pi.sectionTitle}
-                            </span>
-                          </div>
-                          <span className="text-xl font-black" style={{ color: scoreColor(pi.favorablePercent) }}>
-                            {pi.favorablePercent}%
-                          </span>
-                        </div>
-
-                        {/* Question text */}
-                        <p className="text-[11px] text-gray-500 leading-snug mb-3 italic">&ldquo;{pi.questionText}&rdquo;</p>
-
-                        {/* Stacked bar */}
-                        <div className="h-2 w-full rounded-full overflow-hidden flex mb-2" style={{ background: "#F3F2F2" }}>
-                          <div style={{ width: `${pi.favorablePercent}%`, background: "#2E844A" }} />
-                          <div style={{ width: `${pi.neutralPercent}%`, background: "#DD7A01" }} />
-                          <div style={{ width: `${pi.unfavorablePercent}%`, background: "#BA0517" }} />
-                        </div>
-                        <div className="flex gap-3 text-[10px] font-semibold mb-3" style={{ color: "#939393" }}>
-                          <span style={{ color: "#2E844A" }}>{pi.favorablePercent}% fav</span>
-                          <span style={{ color: "#DD7A01" }}>{pi.neutralPercent}% neu</span>
-                          <span style={{ color: "#BA0517" }}>{pi.unfavorablePercent}% unf</span>
-                          <span className="ml-auto">{pi.responseCount} resp.</span>
-                        </div>
-
-                        {/* Top whys */}
-                        {pi.topWhys.length > 0 && (
-                          <div className="rounded-xl p-2.5" style={{ background: "#F8F8FC" }}>
-                            <p className="text-[10px] font-bold text-indigo-400 mb-1.5">💡 Top reasons</p>
-                            <div className="flex flex-wrap gap-1">
-                              {pi.topWhys.map((w) => (
-                                <span key={w.label}
-                                  className="text-[10px] font-semibold px-2 py-0.5 rounded-lg"
-                                  style={{ background: `${pi.sectionColor}18`, color: pi.sectionColor, border: `1px solid ${pi.sectionColor}30` }}>
-                                  {w.label} ×{w.count}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            );
-          })()}
 
         </div>
       </main>
