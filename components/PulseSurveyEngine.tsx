@@ -112,18 +112,23 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5 text-xs font-bold tracking-widest uppercase"
           style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          ECHO 2.0 · 9 questions
+          Engage · Connect · Hear · Own
         </div>
 
-        <h1 className="text-5xl font-black text-white mb-2 leading-tight" style={{ letterSpacing: "-0.03em" }}>
+        <h1 className="text-5xl font-black text-white mb-1 leading-tight" style={{ letterSpacing: "-0.03em" }}>Welcome to</h1>
+        <h1 className="text-5xl font-black mb-2 leading-tight"
+          style={{ letterSpacing: "-0.03em", background: "linear-gradient(90deg, #34D399, #10B981, #059669)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           ECHO 2.0
         </h1>
         <p className="text-sm font-semibold tracking-widest uppercase mb-5" style={{ color: "rgba(110,231,183,0.5)" }}>
-          Fast · Honest · Anonymous
+          Engage · Connect · Hear · Own
         </p>
 
-        <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(199,210,254,0.8)" }}>
-          One question across each area — takes under <strong style={{ color: "#fff" }}>2 minutes</strong>. Your response goes directly to your manager as an aggregated, anonymous score.
+        <p className="text-base leading-relaxed mb-2" style={{ color: "rgba(199,210,254,0.8)" }}>
+          Great teams don&apos;t guess — they listen. ECHO 2.0 is a quick pulse across every area — one honest answer per section.
+        </p>
+        <p className="text-sm leading-relaxed mb-8" style={{ color: "rgba(165,180,252,0.5)" }}>
+          Responses go directly to your manager as <strong style={{ color: "rgba(165,180,252,0.8)" }}>aggregated, anonymous insights</strong> — your identity is never revealed.
         </p>
 
         {/* Stats */}
