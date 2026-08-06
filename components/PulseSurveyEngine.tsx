@@ -252,7 +252,7 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
             <div>
               <p className="text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "#6EE7B7" }}>ECHO 2.0</p>
               <h2 className="text-2xl font-black text-white leading-tight" style={{ letterSpacing: "-0.02em" }}>
-                Rate each area
+                Tell us your honest perspective
               </h2>
             </div>
           </div>
