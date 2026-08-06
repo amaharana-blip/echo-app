@@ -1133,17 +1133,41 @@ export default function ManagerInsightsPage() {
           )}
 
           {/* ══ PULSE ══ */}
-          {activeTab === "pulse" && (
+          {activeTab === "pulse" && (() => {
+            const pi = d.pulseInsights ?? [];
+            const pulseResp = d.pulseRespondents ?? 0;
+            const pulseOverallFav = pi.length
+              ? Math.round(pi.reduce((s, x) => s + x.favorablePercent, 0) / pi.length)
+              : 0;
+            const pulseAtRisk = pi.filter((x) => x.favorablePercent < 50).length;
+            return (
             <div className="space-y-5">
-              <div className="flex items-start justify-between">
+              {/* Pulse stat strip */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { icon: "⚡", label: "Respondents", value: String(pulseResp), sub: "Pulse check", color: "#059669", bg: "#ECFDF5", border: "#6EE7B7" },
+                  { icon: "📊", label: "Overall Favorable", value: pulseResp > 0 ? `${pulseOverallFav}%` : "—", sub: "Across 9 areas", color: scoreColor(pulseOverallFav), bg: "#F0FDF4", border: "#86EFAC" },
+                  { icon: "⚠️", label: "Needs Attention", value: String(pulseAtRisk), sub: "Areas below 50%", color: pulseAtRisk > 0 ? "#BA0517" : "#2E844A", bg: pulseAtRisk > 0 ? "#FEF2F2" : "#F0FDF4", border: pulseAtRisk > 0 ? "#FCA5A5" : "#86EFAC" },
+                ].map((s) => (
+                  <div key={s.label} className="bg-white rounded-2xl p-4 flex items-start gap-3"
+                    style={{ border: `1px solid ${s.border}44`, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                    <div className="h-9 w-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                      style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                      {s.icon}
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black leading-none mb-0.5" style={{ color: "#0F0C29" }}>{s.value}</p>
+                      <p className="text-xs font-semibold" style={{ color: "#374151" }}>{s.label}</p>
+                      <p className="text-[10px] text-gray-400">{s.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">Quick pulse results</p>
-                  <h2 className="text-base font-black" style={{ color: "#0F0C29", letterSpacing: "-0.02em" }}>Pulse Check</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {(d.pulseRespondents ?? 0) > 0
-                      ? `${d.pulseRespondents} response${d.pulseRespondents !== 1 ? "s" : ""} · one question per area`
-                      : "No pulse responses yet — share the link with your team"}
-                  </p>
+                  <h2 className="text-base font-black" style={{ color: "#0F0C29", letterSpacing: "-0.02em" }}>Section breakdown</h2>
                 </div>
                 <button
                   onClick={copyPulseLink}
@@ -1158,7 +1182,7 @@ export default function ManagerInsightsPage() {
                 </button>
               </div>
 
-              {(d.pulseInsights?.length ?? 0) === 0 ? (
+              {pi.length === 0 ? (
                 <div className="rounded-2xl overflow-hidden relative"
                   style={{ background: "linear-gradient(135deg, #0F0C29 0%, #064e3b 100%)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="absolute inset-0 opacity-[0.05]"
@@ -1176,7 +1200,7 @@ export default function ManagerInsightsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(d.pulseInsights ?? []).sort((a, b) => b.favorablePercent - a.favorablePercent).map((pi) => (
+                  {[...pi].sort((a, b) => b.favorablePercent - a.favorablePercent).map((pi) => (
                     <div key={pi.sectionId} className="bg-white rounded-2xl overflow-hidden"
                       style={{ border: `1px solid ${pi.sectionColor}30`, boxShadow: `0 2px 12px ${pi.sectionColor}10` }}>
                       <div className="h-1 w-full" style={{ background: pi.sectionGradient }} />
@@ -1234,7 +1258,8 @@ export default function ManagerInsightsPage() {
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
         </div>
       </main>

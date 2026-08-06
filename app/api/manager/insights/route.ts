@@ -354,6 +354,14 @@ export async function GET() {
         }
       }
 
+      // Build a flat id→label lookup from all pulse question why options
+      const whyIdToLabel: Record<string, string> = {};
+      for (const pq of PULSE_QUESTIONS) {
+        for (const w of [...pq.positiveWhys, ...pq.neutralWhys, ...pq.negativeWhys]) {
+          whyIdToLabel[w.id] = w.label;
+        }
+      }
+
       for (const pq of PULSE_QUESTIONS) {
         const ratings = sectionRatings[pq.sectionId];
         if (!ratings || ratings.length === 0) continue;
@@ -370,8 +378,14 @@ export async function GET() {
         const neuPct = Math.round((neu / total) * 100);
         const unfPct = Math.max(0, 100 - favPct - neuPct);
 
-        const whyCounts = sectionWhyCounts[pq.sectionId] ?? {};
-        const topWhys = Object.entries(whyCounts)
+        // Resolve stored IDs → human labels before aggregating
+        const rawCounts = sectionWhyCounts[pq.sectionId] ?? {};
+        const resolvedCounts: Record<string, number> = {};
+        for (const [id, count] of Object.entries(rawCounts)) {
+          const label = whyIdToLabel[id] ?? id;
+          resolvedCounts[label] = (resolvedCounts[label] ?? 0) + count;
+        }
+        const topWhys = Object.entries(resolvedCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 4)
           .map(([label, count]) => ({ label, count }));
