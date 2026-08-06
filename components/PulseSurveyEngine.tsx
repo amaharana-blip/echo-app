@@ -108,13 +108,6 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5 text-xs font-bold tracking-widest uppercase"
-          style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          9 questions · 2 minutes
-        </div>
-
         <h1 className="text-5xl font-black text-white mb-1 leading-tight" style={{ letterSpacing: "-0.03em" }}>Welcome to</h1>
         <h1 className="text-5xl font-black mb-2 leading-tight"
           style={{ letterSpacing: "-0.03em", background: "linear-gradient(90deg, #34D399, #10B981, #059669)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -131,7 +124,14 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           Responses go directly to your manager as <strong style={{ color: "rgba(165,180,252,0.8)" }}>aggregated, anonymous insights</strong> — your identity is never revealed.
         </p>
 
-        {/* Stats */}
+        {/* Stats — badge moved here from top */}
+        <div className="flex justify-center mb-3">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
+            style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            9 questions · 2 minutes
+          </div>
+        </div>
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {[
             { icon: "🔒", label: "Fully anonymous" },
