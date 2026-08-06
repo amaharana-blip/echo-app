@@ -352,6 +352,17 @@ export default function ManagerInsightsPage() {
   const [newAction, setNewAction] = useState({ sectionId: "", commitment: "", targetDate: "" });
   const [actionPanel, setActionPanel] = useState(false);
 
+  // Pulse survey share
+  const [pulseCopied, setPulseCopied] = useState(false);
+
+  function copyPulseLink() {
+    const url = `${window.location.origin}/pulse-survey`;
+    navigator.clipboard.writeText(url).then(() => {
+      setPulseCopied(true);
+      setTimeout(() => setPulseCopied(false), 2500);
+    });
+  }
+
   // Secret individual view
   const [secretGate, setSecretGate] = useState<"hidden" | "confirm" | "open">("hidden");
   const [individualData, setIndividualData] = useState<IndividualResponse[] | null>(null);
@@ -589,6 +600,18 @@ export default function ManagerInsightsPage() {
                   }}
                 >
                   {secretGate !== "hidden" ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+                <button
+                  onClick={copyPulseLink}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all hover:scale-[1.03]"
+                  style={pulseCopied
+                    ? { background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }
+                    : { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }
+                  }
+                  title="Copy pulse survey link to share with your team"
+                >
+                  <Zap size={13} />
+                  {pulseCopied ? "Link copied!" : "Send pulse"}
                 </button>
                 <button
                   onClick={() => { window.location.href = "/api/auth/logout"; }}

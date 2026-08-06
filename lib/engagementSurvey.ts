@@ -1246,6 +1246,28 @@ export const ENGAGEMENT_SECTIONS: EngSection[] = [
 
 export const ALL_QUESTIONS: EngQuestion[] = ENGAGEMENT_SECTIONS.flatMap((s) => s.questions);
 
+export const PULSE_SURVEY_ID = "pulse-short";
+
+export interface PulseQuestion {
+  id: string;
+  sectionId: string;
+  icon: string;
+  text: string;
+}
+
+// One behavioral question per section — avoids "I feel…" language per legal guidance
+export const PULSE_QUESTIONS: PulseQuestion[] = [
+  { id: "p_leadership",  sectionId: "leadership",  icon: "🧭", text: "Leadership communicates direction clearly and acts consistently on it." },
+  { id: "p_growth",      sectionId: "growth",      icon: "📈", text: "My role gives me genuine opportunities to develop new skills and grow." },
+  { id: "p_purpose",     sectionId: "purpose",     icon: "🎯", text: "My day-to-day work connects to goals that matter beyond just completing tasks." },
+  { id: "p_team",        sectionId: "team",        icon: "🤝", text: "My team collaborates effectively and looks out for one another." },
+  { id: "p_culture",     sectionId: "culture",     icon: "🏛️", text: "The team's stated values are reflected in how decisions actually get made." },
+  { id: "p_wellbeing",   sectionId: "wellbeing",   icon: "🔋", text: "My current workload is sustainable without consistently spilling into personal time." },
+  { id: "p_recognition", sectionId: "recognition", icon: "⭐", text: "Contributions are recognised in ways that feel timely and genuine." },
+  { id: "p_enablement",  sectionId: "enablement",  icon: "⚙️",  text: "I have the tools, access, and information needed to do my job well." },
+  { id: "p_remote",      sectionId: "remote",      icon: "🏠", text: "Remote and hybrid working arrangements are handled fairly across the team." },
+];
+
 export const SECTION_BY_ID: Record<string, EngSection> = Object.fromEntries(
   ENGAGEMENT_SECTIONS.map((s) => [s.id, s])
 );
