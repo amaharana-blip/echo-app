@@ -133,17 +133,11 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {[
-            { icon: "🔒", label: "Fully anonymous" },
-            { icon: "⏱️", label: "Under 2 min" },
-            { icon: "📊", label: "9 areas covered" },
-          ].map((item) => (
-            <div key={item.label} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
-              style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
-              <span>{item.icon}</span>
-              {item.label}
-            </div>
-          ))}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
+            style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.4)", color: "#6EE7B7" }}>
+            <span>🔒</span>
+            Fully anonymous
+          </div>
         </div>
 
         {/* CTA */}
