@@ -32,8 +32,9 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
 
-    const { ratings, comment } = (await req.json()) as {
+    const { ratings, whys, comment } = (await req.json()) as {
       ratings: Record<string, number>;
+      whys?: Record<string, string[]>;
       comment?: string;
     };
 
@@ -52,11 +53,18 @@ export async function POST(req: NextRequest) {
       const rating = ratings[pq.id];
       if (rating === undefined) continue;
 
-      // Store under a canonical question id scoped to pulse: pulse_{sectionId}
-      // This lets the briefing/insights route pick them up per section
+      // Store rating under pulse_{sectionId} so insights can aggregate per section
       const questionId = `pulse_${pq.sectionId}`;
       await ensureQuestion(questionId, survey.id, pq.text, idx++);
       answers.push({ questionId, value: String(rating) });
+
+      // Store why chip selections as JSON, mirroring long survey pattern
+      const selectedWhys = whys?.[pq.id];
+      if (selectedWhys && selectedWhys.length > 0) {
+        const whyQId = `why_pulse_${pq.sectionId}`;
+        await ensureQuestion(whyQId, survey.id, `Why: ${pq.text}`, idx++);
+        answers.push({ questionId: whyQId, value: JSON.stringify(selectedWhys) });
+      }
     }
 
     if (comment?.trim()) {

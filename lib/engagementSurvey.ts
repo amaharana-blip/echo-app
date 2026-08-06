@@ -1253,10 +1253,14 @@ export interface PulseQuestion {
   sectionId: string;
   icon: string;
   text: string;
+  positiveWhys: WhyOption[];
+  neutralWhys: WhyOption[];
+  negativeWhys: WhyOption[];
 }
 
 // One behavioral question per section — avoids "I feel…" language per legal guidance
-export const PULSE_QUESTIONS: PulseQuestion[] = [
+// Why chips are reused from the first question of each section
+const PULSE_RAW: { id: string; sectionId: string; icon: string; text: string }[] = [
   { id: "p_leadership",  sectionId: "leadership",  icon: "🧭", text: "Leadership communicates direction clearly and acts consistently on it." },
   { id: "p_growth",      sectionId: "growth",      icon: "📈", text: "My role gives me genuine opportunities to develop new skills and grow." },
   { id: "p_purpose",     sectionId: "purpose",     icon: "🎯", text: "My day-to-day work connects to goals that matter beyond just completing tasks." },
@@ -1267,6 +1271,16 @@ export const PULSE_QUESTIONS: PulseQuestion[] = [
   { id: "p_enablement",  sectionId: "enablement",  icon: "⚙️",  text: "I have the tools, access, and information needed to do my job well." },
   { id: "p_remote",      sectionId: "remote",      icon: "🏠", text: "Remote and hybrid working arrangements are handled fairly across the team." },
 ];
+
+export const PULSE_QUESTIONS: PulseQuestion[] = PULSE_RAW.map((raw) => {
+  const firstQ = ENGAGEMENT_SECTIONS.find((s) => s.id === raw.sectionId)!.questions[0];
+  return {
+    ...raw,
+    positiveWhys: firstQ.positiveWhys,
+    neutralWhys: firstQ.neutralWhys,
+    negativeWhys: firstQ.negativeWhys,
+  };
+});
 
 export const SECTION_BY_ID: Record<string, EngSection> = Object.fromEntries(
   ENGAGEMENT_SECTIONS.map((s) => [s.id, s])

@@ -1,17 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PULSE_QUESTIONS, ENGAGEMENT_SECTIONS, RATING_OPTIONS } from "@/lib/engagementSurvey";
+import { PULSE_QUESTIONS, RATING_OPTIONS } from "@/lib/engagementSurvey";
 import { ChevronRight, Check, Sparkles, Shield } from "lucide-react";
 
 type Ratings = Record<string, number>;
+type Whys = Record<string, string[]>;
 
 interface Props {
-  onComplete: (ratings: Ratings, comment: string) => void;
+  onComplete: (ratings: Ratings, whys: Whys, comment: string) => void;
 }
 
-function sectionFor(sectionId: string) {
-  return ENGAGEMENT_SECTIONS.find((s) => s.id === sectionId)!;
+function getWhysForPulse(q: typeof PULSE_QUESTIONS[number], rating: number) {
+  if (rating >= 4) return q.positiveWhys;
+  if (rating === 3) return q.neutralWhys;
+  return q.negativeWhys;
+}
+
+/* ─── Why chips ─── */
+function WhyChips({
+  whys,
+  selected,
+  onToggle,
+}: {
+  whys: { id: string; label: string; emoji: string }[];
+  selected: string[];
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-xl p-3.5 mt-3" style={{ background: "#F8F8FC", border: "1px solid rgba(79,70,229,0.12)" }}>
+      <p className="text-[11px] font-bold mb-2.5 flex items-center gap-1.5" style={{ color: "#6366F1" }}>
+        <span>💡</span> What&apos;s behind this?
+        <span className="font-normal text-gray-400">(optional)</span>
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {whys.map((w) => {
+          const active = selected.includes(w.id);
+          return (
+            <button
+              key={w.id}
+              onClick={() => onToggle(w.id)}
+              className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all duration-150"
+              style={{
+                background: active ? "#4F46E5" : "#fff",
+                borderColor: active ? "#4F46E5" : "#E5E7EB",
+                color: active ? "#fff" : "#6B7280",
+                boxShadow: active ? "0 2px 8px rgba(79,70,229,0.35)" : "none",
+                transform: active ? "scale(1.03)" : "scale(1)",
+              }}
+            >
+              <span>{w.emoji}</span>
+              {w.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /* ─── Welcome ─── */
@@ -149,6 +194,7 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
   const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
   const [ratings, setRatings] = useState<Ratings>({});
+  const [whys, setWhys] = useState<Whys>({});
   const [comment, setComment] = useState("");
 
   const answeredCount = Object.keys(ratings).length;
@@ -156,10 +202,19 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
 
   function setRating(qId: string, val: number) {
     setRatings((p) => ({ ...p, [qId]: val }));
+    // clear whys if rating bucket changes
+    setWhys((p) => ({ ...p, [qId]: [] }));
+  }
+
+  function toggleWhy(qId: string, wId: string) {
+    setWhys((p) => {
+      const cur = p[qId] ?? [];
+      return { ...p, [qId]: cur.includes(wId) ? cur.filter((x) => x !== wId) : [...cur, wId] };
+    });
   }
 
   function submit() {
-    onComplete(ratings, comment);
+    onComplete(ratings, whys, comment);
     setDone(true);
   }
 
@@ -209,38 +264,27 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
       <div style={{ background: "#F5F5F7" }}>
         <div className="max-w-2xl mx-auto px-4 py-5 space-y-3">
           {PULSE_QUESTIONS.map((q) => {
-            const section = sectionFor(q.sectionId);
             const rating = ratings[q.id];
             const answered = rating !== undefined;
+            const wyChips = answered ? getWhysForPulse(q, rating) : [];
 
             return (
               <div key={q.id} className="bg-white rounded-2xl overflow-hidden transition-all duration-300"
                 style={{
-                  border: `1px solid ${answered ? section.color + "55" : "#EBEBED"}`,
-                  boxShadow: answered ? `0 4px 20px ${section.color}14` : "0 1px 4px rgba(0,0,0,0.05)",
+                  border: `1px solid ${answered ? "#4F46E555" : "#EBEBED"}`,
+                  boxShadow: answered ? "0 4px 20px rgba(79,70,229,0.1)" : "0 1px 4px rgba(0,0,0,0.05)",
                 }}>
-                <div className="h-[3px] w-full" style={{ background: answered ? section.gradient : "transparent" }} />
+                <div className="h-[3px] w-full" style={{ background: answered ? "linear-gradient(90deg, #4F46E5, #7C3AED)" : "transparent" }} />
                 <div className="px-5 pt-4 pb-5">
-                  {/* Section label */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="h-7 w-7 rounded-lg flex items-center justify-center text-base flex-shrink-0"
-                      style={{ background: section.gradient, boxShadow: `0 4px 10px ${section.color}40` }}>
-                      {section.icon}
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: section.color }}>
-                      {section.title}
-                    </span>
-                    {answered && (
-                      <span className="ml-auto h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: section.color }}>
-                        <Check size={10} className="text-white" strokeWidth={3} />
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Question text */}
+                  {/* Question text — no section header */}
                   <p className="text-sm font-semibold mb-4 leading-snug" style={{ color: "#1A1A2E" }}>
                     {q.icon} {q.text}
+                    {answered && (
+                      <span className="ml-2 inline-flex items-center justify-center h-4 w-4 rounded-full align-middle"
+                        style={{ background: "#4F46E5", verticalAlign: "middle" }}>
+                        <Check size={8} className="text-white" strokeWidth={3} />
+                      </span>
+                    )}
                   </p>
 
                   {/* Rating pills */}
@@ -251,10 +295,10 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
                         <button key={opt.value} onClick={() => setRating(q.id, opt.value)}
                           className="flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all duration-200 select-none"
                           style={{
-                            background: sel ? section.color : "#F9FAFB",
-                            borderColor: sel ? section.color : "#E5E7EB",
+                            background: sel ? "#4F46E5" : "#F9FAFB",
+                            borderColor: sel ? "#4F46E5" : "#E5E7EB",
                             color: sel ? "#fff" : "#6B7280",
-                            boxShadow: sel ? `0 4px 14px ${section.color}50` : "none",
+                            boxShadow: sel ? "0 4px 14px rgba(79,70,229,0.4)" : "none",
                             transform: sel ? "scale(1.07) translateY(-1px)" : "scale(1)",
                           }}>
                           <span className="text-[15px] leading-none">{opt.emoji}</span>
@@ -263,6 +307,15 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
                       );
                     })}
                   </div>
+
+                  {/* Why chips — appear once rating is chosen */}
+                  {answered && wyChips.length > 0 && (
+                    <WhyChips
+                      whys={wyChips}
+                      selected={whys[q.id] ?? []}
+                      onToggle={(wId) => toggleWhy(q.id, wId)}
+                    />
+                  )}
                 </div>
               </div>
             );
@@ -305,7 +358,6 @@ export default function PulseSurveyEngine({ onComplete }: Props) {
                 color: allAnswered ? "#fff" : "#9CA3AF",
                 cursor: allAnswered ? "pointer" : "not-allowed",
                 boxShadow: allAnswered ? "0 4px 20px rgba(16,185,129,0.45)" : "none",
-                transform: allAnswered ? "scale(1)" : "scale(1)",
               }}
             >
               <Check size={15} />

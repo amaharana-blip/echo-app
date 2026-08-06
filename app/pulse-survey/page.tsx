@@ -6,13 +6,13 @@ import PulseSurveyEngine from "@/components/PulseSurveyEngine";
 export default function PulseSurveyPage() {
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleComplete(ratings: Record<string, number>, comment: string) {
+  async function handleComplete(ratings: Record<string, number>, whys: Record<string, string[]>, comment: string) {
     setSubmitting(true);
     try {
       await fetch("/api/pulse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ratings, comment }),
+        body: JSON.stringify({ ratings, whys, comment }),
       });
     } catch {
       // done screen already shown by engine
