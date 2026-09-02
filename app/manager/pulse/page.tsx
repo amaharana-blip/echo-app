@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { RefreshCw, Zap, AlertTriangle, LogOut, ChevronRight } from "lucide-react";
+import { RefreshCw, Zap, AlertTriangle, LogOut, Link2, Eye, EyeOff, X } from "lucide-react";
 import { ENGAGEMENT_SECTIONS } from "@/lib/engagementSurvey";
 
 interface PulseInsight {
@@ -25,9 +25,33 @@ interface PulseData {
   generatedAt: string;
 }
 
+interface IndividualSection {
+  sectionId: string;
+  sectionTitle: string;
+  sectionIcon: string;
+  sectionColor: string;
+  rating: number;
+  whys: string[];
+}
+
+interface IndividualResponse {
+  responseId: string;
+  submittedAt: string;
+  user: { name: string; email: string } | null;
+  overallAvg: number | null;
+  sections: IndividualSection[];
+  comment: string;
+}
+
 function scoreColor(pct: number) {
   if (pct >= 70) return "#2E844A";
   if (pct >= 45) return "#DD7A01";
+  return "#BA0517";
+}
+
+function ratingColor(r: number) {
+  if (r >= 4) return "#2E844A";
+  if (r === 3) return "#DD7A01";
   return "#BA0517";
 }
 
@@ -46,13 +70,20 @@ export default function PulseDashboard() {
   const [data, setData] = useState<PulseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [sendState, setSendState] = useState<"idle" | "generating" | "copied">("idle");
   const [sort, setSort] = useState<"section" | "score">("score");
 
+  // Secret individual view
+  const [secretGate, setSecretGate] = useState<"hidden" | "confirm" | "open">("hidden");
+  const [individualData, setIndividualData] = useState<IndividualResponse[] | null>(null);
+  const [individualLoading, setIndividualLoading] = useState(false);
+  const [expandedResponse, setExpandedResponse] = useState<string | null>(null);
+
   useEffect(() => {
-    fetch("/api/manager/insights")
+    fetch("/api/pulse/insights?managerOnly=1")
       .then((r) => r.json())
       .then((json) => {
+        if (json.error === "Unauthenticated") { window.location.href = "/api/auth/login"; return; }
         if (json.error) { setError(json.error); return; }
         setData({
           pulseInsights: json.pulseInsights ?? [],
@@ -64,11 +95,29 @@ export default function PulseDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  function copyLink() {
-    navigator.clipboard.writeText(`${window.location.origin}/pulse-survey`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
+  async function loadIndividual() {
+    setIndividualLoading(true);
+    try {
+      const r = await fetch("/api/pulse/individual");
+      if (r.ok) setIndividualData(await r.json());
+    } finally {
+      setIndividualLoading(false);
+    }
+  }
+
+  async function sendPulse() {
+    if (sendState !== "idle") return;
+    setSendState("generating");
+    try {
+      const res = await fetch("/api/pulse/token", { method: "POST" });
+      const { token } = await res.json();
+      const url = `${window.location.origin}/pulse-survey?t=${token}`;
+      await navigator.clipboard.writeText(url);
+      setSendState("copied");
+      setTimeout(() => setSendState("idle"), 3000);
+    } catch {
+      setSendState("idle");
+    }
   }
 
   const pi = data?.pulseInsights ?? [];
@@ -83,6 +132,11 @@ export default function PulseDashboard() {
       ? b.favorablePercent - a.favorablePercent
       : a.sectionTitle.localeCompare(b.sectionTitle)
   );
+
+  const sendLabel =
+    sendState === "generating" ? "Generating link…" :
+    sendState === "copied" ? "Link copied!" :
+    "Send pulse";
 
   return (
     <div className="min-h-screen" style={{ background: "#F3F2F2", fontFamily: "'Inter', sans-serif" }}>
@@ -111,21 +165,36 @@ export default function PulseDashboard() {
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={copyLink}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all hover:scale-[1.03]"
-                style={copied
+              {/* Hidden individual view — eye icon only */}
+              <button
+                onClick={() => {
+                  if (secretGate === "hidden") { setSecretGate("confirm"); }
+                  else { setSecretGate("hidden"); setIndividualData(null); }
+                }}
+                title="Individual responses"
+                className="h-8 w-8 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                style={{
+                  background: secretGate !== "hidden" ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)",
+                  border: secretGate !== "hidden" ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(255,255,255,0.12)",
+                  color: secretGate !== "hidden" ? "#FCA5A5" : "rgba(165,180,252,0.5)",
+                }}
+              >
+                {secretGate !== "hidden" ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+              <button
+                onClick={sendPulse}
+                disabled={sendState !== "idle"}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all hover:scale-[1.03] disabled:opacity-70 disabled:cursor-not-allowed"
+                style={sendState === "copied"
                   ? { background: "rgba(16,185,129,0.25)", border: "1px solid rgba(16,185,129,0.5)", color: "#6EE7B7" }
                   : { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(199,210,254,0.8)" }
                 }>
-                <Zap size={13} />
-                {copied ? "Link copied!" : "Send pulse"}
+                {sendState === "generating"
+                  ? <RefreshCw size={12} className="animate-spin" />
+                  : <Link2 size={13} />
+                }
+                {sendLabel}
               </button>
-              <a href="/manager/insights"
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
-                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }}>
-                ECHO Insights
-                <ChevronRight size={13} />
-              </a>
               <button onClick={() => { window.location.href = "/api/auth/logout"; }}
                 className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-all"
                 style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(199,210,254,0.7)" }}>
@@ -138,6 +207,125 @@ export default function PulseDashboard() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+        {/* ── Confirm gate ── */}
+        {secretGate === "confirm" && (
+          <div className="rounded-2xl p-5 flex items-start gap-4"
+            style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-red-700 mb-1">View individual responses?</p>
+              <p className="text-xs text-red-500">This shows who submitted what. Use responsibly.</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => { setSecretGate("open"); loadIndividual(); }}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
+                style={{ background: "#DC2626" }}>
+                Show
+              </button>
+              <button onClick={() => setSecretGate("hidden")}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+                style={{ background: "#F3F4F6", color: "#374151" }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Individual panel ── */}
+        {secretGate === "open" && (
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(239,68,68,0.2)" }}>
+            <div className="flex items-center justify-between px-5 py-3"
+              style={{ background: "rgba(239,68,68,0.08)", borderBottom: "1px solid rgba(239,68,68,0.15)" }}>
+              <p className="text-xs font-bold text-red-700">Individual Responses · {individualData?.length ?? 0} submissions</p>
+              <button onClick={() => { setSecretGate("hidden"); setIndividualData(null); }}>
+                <X size={14} className="text-red-400" />
+              </button>
+            </div>
+
+            {individualLoading && (
+              <div className="flex items-center justify-center h-24 bg-white">
+                <RefreshCw size={16} className="animate-spin text-red-400" />
+              </div>
+            )}
+
+            {!individualLoading && individualData && (
+              <div className="divide-y divide-red-100 bg-white">
+                {individualData.length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-8">No submissions yet.</p>
+                )}
+                {individualData.map((resp) => {
+                  const expanded = expandedResponse === resp.responseId;
+                  return (
+                    <div key={resp.responseId}>
+                      <button
+                        onClick={() => setExpandedResponse(expanded ? null : resp.responseId)}
+                        className="w-full flex items-center gap-4 px-5 py-3 hover:bg-red-50 transition-colors text-left"
+                      >
+                        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#DC2626,#EF4444)" }}>
+                          {resp.user?.name?.[0]?.toUpperCase() ?? "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">
+                            {resp.user?.name ?? "Anonymous"}
+                          </p>
+                          <p className="text-[11px] text-gray-400 truncate">
+                            {resp.user?.email ?? "—"} · {new Date(resp.submittedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {resp.overallAvg !== null && (
+                          <span className="text-sm font-black flex-shrink-0"
+                            style={{ color: ratingColor(resp.overallAvg) }}>
+                            {resp.overallAvg}/5
+                          </span>
+                        )}
+                        <span className="text-gray-300 text-xs">{expanded ? "▲" : "▼"}</span>
+                      </button>
+
+                      {expanded && (
+                        <div className="px-5 pb-4 bg-red-50">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">
+                            {resp.sections.map((s) => (
+                              <div key={s.sectionId} className="bg-white rounded-xl p-3"
+                                style={{ border: `1px solid ${s.sectionColor}25` }}>
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <span className="text-base">{s.sectionIcon}</span>
+                                  <span className="text-[11px] font-bold truncate" style={{ color: s.sectionColor }}>
+                                    {s.sectionTitle}
+                                  </span>
+                                </div>
+                                <p className="text-xl font-black" style={{ color: ratingColor(s.rating) }}>
+                                  {s.rating}/5
+                                </p>
+                                {s.whys.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {s.whys.map((w) => (
+                                      <span key={w} className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                                        style={{ background: `${s.sectionColor}15`, color: s.sectionColor }}>
+                                        {w}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {resp.comment && (
+                            <div className="mt-3 rounded-xl px-3 py-2.5"
+                              style={{ background: "#FFF7F7", border: "1px solid #FEE2E2" }}>
+                              <p className="text-[11px] font-bold text-red-400 mb-1">Comment</p>
+                              <p className="text-xs text-gray-600 italic">&ldquo;{resp.comment}&rdquo;</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {loading && (
           <div className="flex items-center justify-center h-48">
@@ -159,7 +347,7 @@ export default function PulseDashboard() {
               {[
                 {
                   icon: "⚡", label: "Respondents", value: String(pulseResp),
-                  sub: "Pulse submissions", color: "#059669", bg: "#ECFDF5", border: "#6EE7B7",
+                  sub: "Via your pulse link", color: "#059669", bg: "#ECFDF5", border: "#6EE7B7",
                 },
                 {
                   icon: "📊", label: "Overall Favorable", value: pulseResp > 0 ? `${overallFav}%` : "—",
@@ -201,19 +389,23 @@ export default function PulseDashboard() {
                   </div>
                   <p className="text-base font-black text-white mb-1" style={{ letterSpacing: "-0.02em" }}>No pulse data yet</p>
                   <p className="text-sm max-w-xs leading-relaxed mb-6" style={{ color: "rgba(110,231,183,0.6)" }}>
-                    Share the link with your team. Results appear here as soon as anyone responds.
+                    Share your unique pulse link with your team. Results appear here as soon as anyone responds.
                   </p>
-                  <button onClick={copyLink}
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02]"
+                  <button
+                    onClick={sendPulse}
+                    disabled={sendState !== "idle"}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-70"
                     style={{ background: "linear-gradient(135deg,#059669,#10B981)", boxShadow: "0 8px 24px rgba(16,185,129,0.35)" }}>
-                    <Zap size={14} />
-                    {copied ? "Copied!" : "Copy pulse survey link"}
+                    {sendState === "generating"
+                      ? <RefreshCw size={14} className="animate-spin" />
+                      : <Link2 size={14} />
+                    }
+                    {sendState === "copied" ? "Copied!" : sendState === "generating" ? "Generating…" : "Copy pulse survey link"}
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                {/* Sort control */}
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-400">{pi.length} areas · sorted by {sort === "score" ? "score" : "section name"}</p>
                   <div className="flex gap-1 p-0.5 rounded-xl" style={{ background: "#E5E7EB" }}>
@@ -234,14 +426,11 @@ export default function PulseDashboard() {
                   {sorted.map((item) => {
                     const section = ENGAGEMENT_SECTIONS.find((s) => s.id === item.sectionId);
                     const sc = scoreColor(item.favorablePercent);
-
                     return (
                       <div key={item.sectionId} className="bg-white rounded-2xl overflow-hidden transition-all hover:shadow-md"
                         style={{ border: `1px solid ${item.sectionColor}30`, boxShadow: `0 2px 8px ${item.sectionColor}0d` }}>
                         <div className="h-1 w-full" style={{ background: item.sectionGradient }} />
                         <div className="p-4">
-
-                          {/* Header row */}
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className="h-8 w-8 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
@@ -254,11 +443,7 @@ export default function PulseDashboard() {
                             </div>
                             <span className="text-2xl font-black" style={{ color: sc }}>{item.favorablePercent}%</span>
                           </div>
-
-                          {/* Question */}
                           <p className="text-[11px] text-gray-400 leading-snug mb-3 italic">&ldquo;{item.questionText}&rdquo;</p>
-
-                          {/* Bar */}
                           <ScoreBar fav={item.favorablePercent} neu={item.neutralPercent} unf={item.unfavorablePercent} />
                           <div className="flex gap-3 text-[10px] font-semibold mt-1.5 mb-3" style={{ color: "#9CA3AF" }}>
                             <span style={{ color: "#2E844A" }}>{item.favorablePercent}% fav</span>
@@ -266,8 +451,6 @@ export default function PulseDashboard() {
                             <span style={{ color: "#BA0517" }}>{item.unfavorablePercent}% unf</span>
                             <span className="ml-auto">{item.responseCount} resp.</span>
                           </div>
-
-                          {/* Why chips */}
                           {item.topWhys.length > 0 && (
                             <div className="rounded-xl p-2.5" style={{ background: "#F8F8FC" }}>
                               <p className="text-[10px] font-bold mb-1.5" style={{ color: "#6366F1" }}>💡 Top reasons</p>

@@ -8,7 +8,7 @@ import {
   AI_TOOLS_MODULE,
   type Module,
 } from "@/lib/modules";
-import { ENGAGEMENT_SECTIONS, ENGAGEMENT_SURVEY_ID, PULSE_SURVEY_ID, PULSE_QUESTIONS } from "@/lib/engagementSurvey";
+import { ENGAGEMENT_SECTIONS, ENGAGEMENT_SURVEY_ID } from "@/lib/engagementSurvey";
 
 const MODULES: Module[] = [PULSE_MODULE, BURNOUT_MODULE, MANAGER_MODULE, AI_TOOLS_MODULE];
 const MIN_RESPONSES = 1;
@@ -311,104 +311,6 @@ export async function GET() {
       for (const r of echoResponses) { if (r.userId) respondentSet.add(r.userId); }
     }
 
-    // ── Pulse survey processing ──
-    const pulseResponses = byModule[PULSE_SURVEY_ID] ?? [];
-    const pulseInsights: {
-      sectionId: string;
-      sectionTitle: string;
-      sectionIcon: string;
-      sectionColor: string;
-      sectionGradient: string;
-      questionText: string;
-      favorablePercent: number;
-      neutralPercent: number;
-      unfavorablePercent: number;
-      responseCount: number;
-      topWhys: { label: string; count: number }[];
-    }[] = [];
-
-    if (pulseResponses.length >= MIN_RESPONSES) {
-      // Collect ratings and why chips per section
-      const sectionRatings: Record<string, number[]> = {};
-      const sectionWhyCounts: Record<string, Record<string, number>> = {};
-
-      for (const resp of pulseResponses) {
-        for (const ans of resp.answers) {
-          if (ans.questionId.startsWith("why_pulse_")) {
-            const sectionId = ans.questionId.replace("why_pulse_", "");
-            if (!sectionWhyCounts[sectionId]) sectionWhyCounts[sectionId] = {};
-            try {
-              const chips: string[] = JSON.parse(ans.value);
-              for (const chip of chips) {
-                sectionWhyCounts[sectionId][chip] = (sectionWhyCounts[sectionId][chip] ?? 0) + 1;
-              }
-            } catch { /* ignore */ }
-            continue;
-          }
-          if (!ans.questionId.startsWith("pulse_")) continue;
-          const sectionId = ans.questionId.replace("pulse_", "");
-          const val = Number(ans.value);
-          if (isNaN(val) || val < 1 || val > 5) continue;
-          if (!sectionRatings[sectionId]) sectionRatings[sectionId] = [];
-          sectionRatings[sectionId].push(val);
-        }
-      }
-
-      // Build a flat id→label lookup from all pulse question why options
-      const whyIdToLabel: Record<string, string> = {};
-      for (const pq of PULSE_QUESTIONS) {
-        for (const w of [...pq.positiveWhys, ...pq.neutralWhys, ...pq.negativeWhys]) {
-          whyIdToLabel[w.id] = w.label;
-        }
-      }
-
-      for (const pq of PULSE_QUESTIONS) {
-        const ratings = sectionRatings[pq.sectionId];
-        if (!ratings || ratings.length === 0) continue;
-
-        let fav = 0, neu = 0, unf = 0;
-        for (const r of ratings) {
-          const cls = ratingToClass(r);
-          if (cls === "favorable") fav++;
-          else if (cls === "neutral") neu++;
-          else unf++;
-        }
-        const total = ratings.length;
-        const favPct = Math.round((fav / total) * 100);
-        const neuPct = Math.round((neu / total) * 100);
-        const unfPct = Math.max(0, 100 - favPct - neuPct);
-
-        // Resolve stored IDs → human labels before aggregating
-        const rawCounts = sectionWhyCounts[pq.sectionId] ?? {};
-        const resolvedCounts: Record<string, number> = {};
-        for (const [id, count] of Object.entries(rawCounts)) {
-          const label = whyIdToLabel[id] ?? id;
-          resolvedCounts[label] = (resolvedCounts[label] ?? 0) + count;
-        }
-        const topWhys = Object.entries(resolvedCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 4)
-          .map(([label, count]) => ({ label, count }));
-
-        const section = ENGAGEMENT_SECTIONS.find((s) => s.id === pq.sectionId);
-        pulseInsights.push({
-          sectionId: pq.sectionId,
-          sectionTitle: section?.title ?? pq.sectionId,
-          sectionIcon: section?.icon ?? pq.icon,
-          sectionColor: section?.color ?? "#4F46E5",
-          sectionGradient: section?.gradient ?? "linear-gradient(135deg,#4F46E5,#7C3AED)",
-          questionText: pq.text,
-          favorablePercent: favPct,
-          neutralPercent: neuPct,
-          unfavorablePercent: unfPct,
-          responseCount: total,
-          topWhys,
-        });
-      }
-
-      for (const r of pulseResponses) { if (r.userId) respondentSet.add(r.userId); }
-    }
-
     dimensionSummaries.sort((a, b) => b.favorablePercent - a.favorablePercent);
 
     const sortedByFav = [...allQuestionInsights].sort(
@@ -435,8 +337,6 @@ export async function GET() {
         (a, b) => a.overallFavorablePercent - b.overallFavorablePercent
       ),
       teamVoiceComments,
-      pulseInsights,
-      pulseRespondents: pulseResponses.length,
       generatedAt: new Date().toISOString(),
     });
   } catch (err) {

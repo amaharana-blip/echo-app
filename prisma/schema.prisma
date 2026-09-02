@@ -80,10 +80,18 @@ model Response {
   userId      String?
   user        User?    @relation(fields: [userId], references: [id])
   isAnonymous Boolean  @default(false)
+  managerId   String?  // set when submitted via a manager's pulse token
   answers     Answer[]
   submittedAt DateTime @default(now())
+}
 
-  @@unique([surveyId, userId])
+model PulseToken {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid())
+  managerId String
+  createdAt DateTime @default(now())
+  expiresAt DateTime // tokens expire after 7 days
+  used      Int      @default(0)
 }
 
 model Answer {

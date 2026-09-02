@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
 
     // Check for duplicate (only when userId is tracked)
     if (!isAnonymous) {
-      const existing = await db.response.findUnique({
-        where: { surveyId_userId: { surveyId, userId: user.id } },
+      const existing = await db.response.findFirst({
+        where: { surveyId, userId: user.id },
       });
       if (existing) return NextResponse.json({ error: "Already submitted" }, { status: 409 });
     }

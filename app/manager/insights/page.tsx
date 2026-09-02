@@ -376,9 +376,9 @@ export default function ManagerInsightsPage() {
 
   useEffect(() => {
     fetch("/api/manager/insights")
-      .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then((r) => { if (r.status === 401) { window.location.href = "/api/auth/login"; throw new Error("401"); } if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
       .then((d) => { setData(d); setLoading(false); })
-      .catch((e) => { setError(e.message); setLoading(false); });
+      .catch((e) => { if (e.message !== "401") setError(e.message); setLoading(false); });
     fetch("/api/actions")
       .then((r) => r.ok ? r.json() : [])
       .then((a) => setActions(a));

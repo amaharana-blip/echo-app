@@ -9,7 +9,7 @@ async function ensurePulseSurvey(userId: string) {
   return db.survey.create({
     data: {
       id: PULSE_SURVEY_ID,
-      title: "Quick Pulse Check",
+      title: "ECHO 2.0",
       module: "ENGAGEMENT",
       status: "ACTIVE",
       isAnonymous: true,
@@ -29,23 +29,33 @@ async function ensureQuestion(questionId: string, surveyId: string, text: string
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    const user = await getCurrentUser(); // may be null for unauthenticated submitters
 
-    const { ratings, whys, comment } = (await req.json()) as {
+    const { ratings, whys, comment, token } = (await req.json()) as {
       ratings: Record<string, number>;
       whys?: Record<string, string[]>;
       comment?: string;
+      token?: string;
     };
 
     if (!ratings || typeof ratings !== "object") {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    const survey = await ensurePulseSurvey(user.id);
+    // Resolve token → managerId
+    let managerId: string | null = null;
+    if (token) {
+      const pulseToken = await db.pulseToken.findUnique({ where: { token } });
+      if (pulseToken && pulseToken.expiresAt > new Date()) {
+        managerId = pulseToken.managerId;
+        await db.pulseToken.update({ where: { token }, data: { used: { increment: 1 } } });
+      }
+    }
 
-    // Build answers: one per pulse question id, stored under the section id
-    // so manager insights can aggregate them alongside regular survey data
+    // Need a real userId to create the survey — use a system user if anonymous
+    const systemUserId = user?.id ?? (await db.user.findFirst({ where: { role: "ADMIN" } }))!.id;
+    const survey = await ensurePulseSurvey(systemUserId);
+
     const answers: { questionId: string; value: string }[] = [];
     let idx = 0;
 
@@ -53,12 +63,10 @@ export async function POST(req: NextRequest) {
       const rating = ratings[pq.id];
       if (rating === undefined) continue;
 
-      // Store rating under pulse_{sectionId} so insights can aggregate per section
       const questionId = `pulse_${pq.sectionId}`;
       await ensureQuestion(questionId, survey.id, pq.text, idx++);
       answers.push({ questionId, value: String(rating) });
 
-      // Store why chip selections as JSON, mirroring long survey pattern
       const selectedWhys = whys?.[pq.id];
       if (selectedWhys && selectedWhys.length > 0) {
         const whyQId = `why_pulse_${pq.sectionId}`;
@@ -73,11 +81,23 @@ export async function POST(req: NextRequest) {
       answers.push({ questionId: commentQId, value: comment.trim() });
     }
 
+    // If logged in, delete any prior pulse response so re-submits work cleanly
+    if (user?.id) {
+      const existing = await db.response.findFirst({
+        where: { surveyId: PULSE_SURVEY_ID, userId: user.id },
+      });
+      if (existing) {
+        await db.answer.deleteMany({ where: { responseId: existing.id } });
+        await db.response.delete({ where: { id: existing.id } });
+      }
+    }
+
     const response = await db.response.create({
       data: {
         surveyId: PULSE_SURVEY_ID,
-        userId: user.id,
+        userId: user?.id ?? null,
         isAnonymous: true,
+        managerId: managerId ?? undefined,
         answers: { create: answers },
       },
       include: { answers: true },
